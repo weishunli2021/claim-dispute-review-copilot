@@ -1,0 +1,22 @@
+[
+  {
+    "authorization_id": "PA-1501",
+    "member_id": "M-1002",
+    "service_code": "MRI-KNEE",
+    "plan_id": "PLAN-GOLD",
+    "status": "EXPIRED",
+    "effective_date": "2025-01-01",
+    "expiration_date": "2025-06-30",
+    "notes": "Authorization from a previous plan year; no longer active."
+  },
+  {
+    "authorization_id": "PA-2001",
+    "member_id": "M-1002",
+    "service_code": "MRI-KNEE",
+    "plan_id": "PLAN-GOLD",
+    "status": "APPROVED",
+    "effective_date": "2026-01-01",
+    "expiration_date": "2026-06-30",
+    "notes": "Approved for outpatient knee MRI at an in-network facility."
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "provider_id": "PRV-1001",
+    "name": "Lakeside Imaging Center",
+    "provider_type": "facility",
+    "specialty": "Radiology",
+    "network_status": "in-network",
+    "network_name": "Meridian Preferred Network"
+  },
+  {
+    "provider_id": "PRV-1002",
+    "name": "QuickDraw Labs",
+    "provider_type": "facility",
+    "specialty": "Laboratory",
+    "network_status": "in-network",
+    "network_name": "Meridian Silver Network"
+  },
+  {
+    "provider_id": "PRV-2002",
+    "name": "Sunrise Physical Therapy Group",
+    "provider_type": "facility",
+    "specialty": "Physical Therapy",
+    "network_status": "out-of-network",
+    "network_name": null
+  },
+  {
+    "provider_id": "PRV-4001",
+    "name": "Dr. Ana Kowalski",
+    "provider_type": "physician",
+    "specialty": "Orthopedics",
+    "network_status": "in-network",
+    "network_name": "Meridian Preferred Network"
+  },
+  {
+    "provider_id": "PRV-4002",
+    "name": "Dr. Sam Rivera",
+    "provider_type": "physician",
+    "specialty": "Family Medicine",
+    "network_status": "in-network",
+    "network_name": "Meridian Silver Network"
+  },
+  {
+    "provider_id": "PRV-4003",
+    "name": "Dr. Morgan Diaz",
+    "provider_type": "physician",
+    "specialty": "Orthopedics",
+    "network_status": "in-network",
+    "network_name": "Meridian Preferred Network"
+  },
+  {
+    "provider_id": "PRV-4004",
+    "name": "Dr. Casey Kim",
+    "provider_type": "physician",
+    "specialty": "Family Medicine",
+    "network_status": "in-network",
+    "network_name": "Meridian Bronze Network"
+  }
+]

@@ -1,0 +1,101 @@
+[
+  {
+    "case_id": "case1_specific_query",
+    "claim_id": "CLM-1001",
+    "query": "Does outpatient knee MRI need prior authorization before this claim would be paid?",
+    "terminal_status": "EVIDENCE_SUFFICIENT",
+    "required_actions": ["VALIDATE_REQUEST", "LOAD_CASE", "ASSESS_CASE", "BUILD_EVIDENCE", "ASSESS_EVIDENCE", "COMPLETE"],
+    "forbidden_actions": ["ERROR", "NEEDS_REVIEW", "MAX_STEPS_EXCEEDED"],
+    "evidence_should_be_built": true,
+    "human_review_required": false,
+    "rationale": "data/claims.json + data/benefits.json + data/providers.json show member, plan, a present benefit (covered=true), and a resolvable servicing provider for CLM-1001 -- all four critical categories in the prototype sufficiency rule (agents/routing.py) are satisfied, so the workflow should complete even though no matching prior authorization exists (that absence is the AUTH_REQUIRED finding itself, not a gap)."
+  },
+  {
+    "case_id": "case2_paid_claim",
+    "claim_id": "CLM-1002",
+    "query": "Was this claim paid correctly?",
+    "terminal_status": "EVIDENCE_SUFFICIENT",
+    "required_actions": ["VALIDATE_REQUEST", "LOAD_CASE", "ASSESS_CASE", "BUILD_EVIDENCE", "ASSESS_EVIDENCE", "COMPLETE"],
+    "forbidden_actions": ["ERROR", "NEEDS_REVIEW", "MAX_STEPS_EXCEEDED"],
+    "evidence_should_be_built": true,
+    "human_review_required": false,
+    "rationale": "All critical categories are resolved for CLM-1002 (member, plan, benefit present, servicing provider present), plus both of Case 2's prior-authorization records exist -- nothing about this case should ever route to NEEDS_REVIEW or ERROR."
+  },
+  {
+    "case_id": "case3_not_covered",
+    "claim_id": "CLM-1003",
+    "query": "Why was my lab claim denied?",
+    "terminal_status": "EVIDENCE_SUFFICIENT",
+    "required_actions": ["VALIDATE_REQUEST", "LOAD_CASE", "ASSESS_CASE", "BUILD_EVIDENCE", "ASSESS_EVIDENCE", "COMPLETE"],
+    "forbidden_actions": ["ERROR", "NEEDS_REVIEW", "MAX_STEPS_EXCEEDED"],
+    "evidence_should_be_built": true,
+    "human_review_required": false,
+    "rationale": "data/benefits.json has an explicit, present BEN-SILVER-LAB-BASIC record with covered=false. The prototype sufficiency rule only checks benefit PRESENCE, not its covered value -- a present-but-not-covered benefit must never be treated the same as a genuinely absent one (that distinction is the whole point of keeping this case in the golden set), so this must reach COMPLETE, not NEEDS_REVIEW."
+  },
+  {
+    "case_id": "case4_out_of_network",
+    "claim_id": "CLM-1004",
+    "query": "Why was my physical therapy claim denied?",
+    "terminal_status": "EVIDENCE_SUFFICIENT",
+    "required_actions": ["VALIDATE_REQUEST", "LOAD_CASE", "ASSESS_CASE", "BUILD_EVIDENCE", "ASSESS_EVIDENCE", "COMPLETE"],
+    "forbidden_actions": ["ERROR", "NEEDS_REVIEW", "MAX_STEPS_EXCEEDED"],
+    "evidence_should_be_built": true,
+    "human_review_required": false,
+    "rationale": "data/providers.json shows PRV-2002 exists as a real, resolvable Provider record (network_status=out-of-network is a resolved fact about it, not an absence of it). The sufficiency rule checks servicing-provider PRESENCE, not network status, so an out-of-network servicing provider still counts as resolved evidence -- this must reach COMPLETE."
+  },
+  {
+    "case_id": "case5_incomplete_data",
+    "claim_id": "CLM-1005",
+    "query": "Why was my specialist visit claim denied?",
+    "terminal_status": "NEEDS_REVIEW",
+    "required_actions": ["VALIDATE_REQUEST", "LOAD_CASE", "ASSESS_CASE", "BUILD_EVIDENCE", "ASSESS_EVIDENCE", "NEEDS_REVIEW"],
+    "forbidden_actions": ["COMPLETE", "ERROR", "MAX_STEPS_EXCEEDED"],
+    "evidence_should_be_built": true,
+    "human_review_required": true,
+    "rationale": "data/benefits.json has NO record for plan_id=PLAN-BRONZE + service_code=SPECIALIST-VISIT (benefit genuinely absent, unlike Case 3), and data/providers.json has no record for provider_id=PRV-9999 (the claim's own servicing provider_id, genuinely unresolvable). Two of the four critical categories (benefit, servicing_provider) are unresolved -- the prototype sufficiency rule must route this to NEEDS_REVIEW. Evidence assembly still runs first (BUILD_EVIDENCE happens before the sufficiency check), since retrieval may still be useful even with incomplete structured facts."
+  },
+  {
+    "case_id": "unknown_claim",
+    "claim_id": "CLM-9999",
+    "query": "What happened with this claim?",
+    "terminal_status": "ERROR",
+    "required_actions": ["VALIDATE_REQUEST", "LOAD_CASE", "ERROR"],
+    "forbidden_actions": ["ASSESS_CASE", "BUILD_EVIDENCE", "ASSESS_EVIDENCE", "COMPLETE", "NEEDS_REVIEW"],
+    "evidence_should_be_built": false,
+    "human_review_required": false,
+    "rationale": "CLM-9999 does not exist in data/claims.json. tools.case_context.get_case_context returns an all-None CaseContext for it (does not raise), and load_case's own check (claim_context.claim is None) must route straight to ERROR without ever reaching evidence assembly. This is a 'not found' fact, not a review-worthy insufficiency, so human_review_required=false."
+  },
+  {
+    "case_id": "invalid_claim_id_format",
+    "claim_id": "bad claim id",
+    "query": "What happened with this claim?",
+    "terminal_status": "ERROR",
+    "required_actions": ["VALIDATE_REQUEST", "ERROR"],
+    "forbidden_actions": ["LOAD_CASE", "ASSESS_CASE", "BUILD_EVIDENCE", "ASSESS_EVIDENCE", "COMPLETE", "NEEDS_REVIEW"],
+    "evidence_should_be_built": false,
+    "human_review_required": false,
+    "rationale": "'bad claim id' contains whitespace and fails tools.validation.require_identifier's format check -- the same convention used by every deterministic tool in this project. This must be rejected at VALIDATE_REQUEST, before any attempt to look up a case."
+  },
+  {
+    "case_id": "empty_query",
+    "claim_id": "CLM-1001",
+    "query": "   ",
+    "terminal_status": "ERROR",
+    "required_actions": ["VALIDATE_REQUEST", "ERROR"],
+    "forbidden_actions": ["LOAD_CASE", "ASSESS_CASE", "BUILD_EVIDENCE", "ASSESS_EVIDENCE", "COMPLETE", "NEEDS_REVIEW"],
+    "evidence_should_be_built": false,
+    "human_review_required": false,
+    "rationale": "A whitespace-only query fails validate_request's non-blank check even though claim_id (CLM-1001) is perfectly valid -- both inputs must independently pass validation before the workflow proceeds to LOAD_CASE."
+  },
+  {
+    "case_id": "vague_case1_query",
+    "claim_id": "CLM-1001",
+    "query": "My claim was denied. What's wrong with it?",
+    "terminal_status": "EVIDENCE_SUFFICIENT",
+    "required_actions": ["VALIDATE_REQUEST", "LOAD_CASE", "ASSESS_CASE", "BUILD_EVIDENCE", "ASSESS_EVIDENCE", "COMPLETE"],
+    "forbidden_actions": ["ERROR", "NEEDS_REVIEW", "MAX_STEPS_EXCEEDED"],
+    "evidence_should_be_built": true,
+    "human_review_required": false,
+    "rationale": "Same claim as case1_specific_query, deliberately vague query wording instead. The prototype sufficiency rule (agents/routing.py) never inspects which specific policy sections were retrieved -- only that structured facts are resolved and that at least one policy chunk came back -- so this must reach the identical terminal status and trace as the specific-query version, regardless of how much the vague wording affects which sections are retrieved (a retrieval-quality question tracked separately in evals/hybrid_retrieval_eval.py, not an agent-routing one)."
+  }
+]

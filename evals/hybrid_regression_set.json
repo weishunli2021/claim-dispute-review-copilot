@@ -1,0 +1,168 @@
+[
+  {
+    "case_id": "case1_denial_investigation",
+    "claim_id": "CLM-1001",
+    "query": "My claim was denied. What's wrong with it?",
+    "expected_structured_facts": {
+      "claim_status": "DENIED",
+      "denial_reason_code": "AUTH_REQUIRED",
+      "benefit_present": true,
+      "benefit_covered": true,
+      "benefit_requires_prior_auth": true,
+      "prior_authorizations_count": 0,
+      "servicing_provider_present": true,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["PA-4", "IMG-2"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1001", "relation": "BELONGS_TO", "target": "member:M-1001"},
+      {"source": "claim:CLM-1001", "relation": "SERVICED_BY", "target": "provider:PRV-1001"},
+      {"source": "claim:CLM-1001", "relation": "ORDERED_BY", "target": "provider:PRV-4001"},
+      {"source": "member:M-1001", "relation": "ENROLLED_IN", "target": "plan:PLAN-GOLD"},
+      {"source": "plan:PLAN-GOLD", "relation": "HAS_BENEFIT", "target": "benefit:BEN-GOLD-MRI-KNEE"}
+    ],
+    "expected_missing_evidence_categories": ["prior_authorization"],
+    "forbidden_nodes": ["claim:CLM-1002", "member:M-1002", "authorization:PA-1501", "authorization:PA-2001"],
+    "notes": "The vague, under-specified query -- this is the case query enrichment is meant to help with."
+  },
+  {
+    "case_id": "case1_specific_mri_query",
+    "claim_id": "CLM-1001",
+    "query": "Does outpatient knee MRI need prior authorization before this claim would be paid?",
+    "expected_structured_facts": {
+      "claim_status": "DENIED",
+      "denial_reason_code": "AUTH_REQUIRED",
+      "prior_authorizations_count": 0
+    },
+    "expected_policy_sections": ["IMG-2", "PA-2"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1001", "relation": "BELONGS_TO", "target": "member:M-1001"},
+      {"source": "claim:CLM-1001", "relation": "SERVICED_BY", "target": "provider:PRV-1001"}
+    ],
+    "expected_missing_evidence_categories": ["prior_authorization"],
+    "forbidden_nodes": ["claim:CLM-1002", "member:M-1002"]
+  },
+  {
+    "case_id": "case2_paid_claim_investigation",
+    "claim_id": "CLM-1002",
+    "query": "Was this claim paid correctly?",
+    "expected_structured_facts": {
+      "claim_status": "PAID",
+      "denial_reason_code": null,
+      "benefit_present": true,
+      "benefit_covered": true,
+      "benefit_requires_prior_auth": true,
+      "prior_authorizations_count": 2,
+      "servicing_provider_present": true,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["IMG-2", "BEN-2"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1002", "relation": "BELONGS_TO", "target": "member:M-1002"},
+      {"source": "member:M-1002", "relation": "HAS_AUTHORIZATION", "target": "authorization:PA-1501"},
+      {"source": "member:M-1002", "relation": "HAS_AUTHORIZATION", "target": "authorization:PA-2001"},
+      {"source": "authorization:PA-2001", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"}
+    ],
+    "expected_missing_evidence_categories": [],
+    "forbidden_nodes": ["claim:CLM-1001", "member:M-1001"],
+    "notes": "No missing evidence expected here -- every structured fact this claim needs was retrieved, including both of Case 2's prior-authorization records."
+  },
+  {
+    "case_id": "case2_authorization_window_query",
+    "claim_id": "CLM-1002",
+    "query": "Is there an approved authorization on file for this MRI covering the date of service?",
+    "expected_structured_facts": {
+      "prior_authorizations_count": 2
+    },
+    "expected_policy_sections": ["IMG-2", "PA-2"],
+    "expected_graph_relationships": [
+      {"source": "authorization:PA-1501", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"},
+      {"source": "authorization:PA-2001", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"}
+    ],
+    "expected_missing_evidence_categories": [],
+    "forbidden_nodes": ["claim:CLM-1001", "member:M-1001"]
+  },
+  {
+    "case_id": "case3_not_covered_investigation",
+    "claim_id": "CLM-1003",
+    "query": "Why was my lab claim denied?",
+    "expected_structured_facts": {
+      "claim_status": "DENIED",
+      "denial_reason_code": "SERVICE_NOT_COVERED",
+      "benefit_present": true,
+      "benefit_covered": false,
+      "benefit_requires_prior_auth": false,
+      "prior_authorizations_count": 0,
+      "servicing_provider_present": true,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["BEN-3", "CLM-3"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1003", "relation": "BELONGS_TO", "target": "member:M-1003"},
+      {"source": "member:M-1003", "relation": "ENROLLED_IN", "target": "plan:PLAN-SILVER"},
+      {"source": "plan:PLAN-SILVER", "relation": "HAS_BENEFIT", "target": "benefit:BEN-SILVER-LAB-BASIC"}
+    ],
+    "expected_missing_evidence_categories": ["prior_authorization"],
+    "forbidden_nodes": ["claim:CLM-1001", "claim:CLM-1002"],
+    "notes": "benefit_covered=false is a real, present Benefit record (not missing evidence) -- distinct from Case 5's genuinely absent benefit."
+  },
+  {
+    "case_id": "case4_out_of_network_investigation",
+    "claim_id": "CLM-1004",
+    "query": "Why was my physical therapy claim denied?",
+    "expected_structured_facts": {
+      "claim_status": "DENIED",
+      "denial_reason_code": "OUT_OF_NETWORK_PROVIDER",
+      "benefit_present": true,
+      "benefit_covered": true,
+      "benefit_requires_prior_auth": false,
+      "prior_authorizations_count": 0,
+      "servicing_provider_present": true,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["CLM-4", "BEN-4"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1004", "relation": "SERVICED_BY", "target": "provider:PRV-2002"},
+      {"source": "claim:CLM-1004", "relation": "ORDERED_BY", "target": "provider:PRV-4002"},
+      {"source": "provider:PRV-4002", "relation": "PARTICIPATES_IN", "target": "network:meridian-silver-network"}
+    ],
+    "expected_missing_evidence_categories": ["prior_authorization"],
+    "forbidden_nodes": ["claim:CLM-1001", "claim:CLM-1002"],
+    "notes": "provider:PRV-2002 (out-of-network) must be present but must NOT have a PARTICIPATES_IN edge -- it has no home network."
+  },
+  {
+    "case_id": "case4_network_status_query",
+    "claim_id": "CLM-1004",
+    "query": "Is this provider part of my plan's network?",
+    "expected_structured_facts": {
+      "denial_reason_code": "OUT_OF_NETWORK_PROVIDER"
+    },
+    "expected_policy_sections": ["CLM-4", "NET-1"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1004", "relation": "SERVICED_BY", "target": "provider:PRV-2002"}
+    ],
+    "expected_missing_evidence_categories": ["prior_authorization"],
+    "forbidden_nodes": ["claim:CLM-1001"]
+  },
+  {
+    "case_id": "case5_incomplete_investigation",
+    "claim_id": "CLM-1005",
+    "query": "Why was my specialist visit claim denied?",
+    "expected_structured_facts": {
+      "claim_status": "DENIED",
+      "denial_reason_code": null,
+      "benefit_present": false,
+      "prior_authorizations_count": 0,
+      "servicing_provider_present": false,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["CLM-5"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1005", "relation": "BELONGS_TO", "target": "member:M-1005"},
+      {"source": "claim:CLM-1005", "relation": "ORDERED_BY", "target": "provider:PRV-4004"}
+    ],
+    "expected_missing_evidence_categories": ["benefit", "servicing_provider", "prior_authorization"],
+    "forbidden_nodes": ["provider:PRV-9999", "claim:CLM-1001"],
+    "notes": "Deliberately incomplete case: no benefit rule, no servicing provider (PRV-9999 is dangling and must never appear anywhere), no denial_reason_code. This must never be resolved into an invented conclusion."
+  }
+]

@@ -1,0 +1,107 @@
+[
+  {
+    "query_id": "mri_prior_auth",
+    "query": "Does outpatient knee MRI require prior authorization?",
+    "expected_relevant_sections": ["IMG-2", "PA-2", "BEN-2"]
+  },
+  {
+    "query_id": "auth_required_meaning",
+    "query": "What does the AUTH_REQUIRED denial code mean?",
+    "expected_relevant_sections": ["PA-4", "CLM-2"]
+  },
+  {
+    "query_id": "auth_effective_window",
+    "query": "How do prior authorization effective and expiration dates affect whether it covers a claim?",
+    "expected_relevant_sections": ["PA-3"]
+  },
+  {
+    "query_id": "mri_denied_despite_coverage",
+    "query": "My MRI claim was denied for AUTH_REQUIRED even though MRI is supposed to be covered -- why?",
+    "expected_relevant_sections": ["PA-4", "BEN-2", "CLM-2"]
+  },
+  {
+    "query_id": "lab_not_covered_silver",
+    "query": "Is a basic lab panel covered under the Silver plan?",
+    "expected_relevant_sections": ["BEN-3"]
+  },
+  {
+    "query_id": "lab_denial_reason",
+    "query": "Why would a lab claim be denied for a coverage reason instead of an authorization reason?",
+    "expected_relevant_sections": ["CLM-3", "BEN-3"]
+  },
+  {
+    "query_id": "network_status_definition",
+    "query": "What's the difference between an in-network and an out-of-network provider?",
+    "expected_relevant_sections": ["NET-1"]
+  },
+  {
+    "query_id": "pt_out_of_network_consequence",
+    "query": "What happens if a physical therapy visit is performed by an out-of-network provider?",
+    "expected_relevant_sections": ["NET-3", "BEN-4"]
+  },
+  {
+    "query_id": "verify_network_status",
+    "query": "How should an associate verify whether a provider is in-network?",
+    "expected_relevant_sections": ["NET-4"]
+  },
+  {
+    "query_id": "missing_benefit_record",
+    "query": "What does it mean when there is no benefit record on file for a plan and service combination?",
+    "expected_relevant_sections": ["BEN-5", "CLM-5"]
+  },
+  {
+    "query_id": "incomplete_claim_escalation",
+    "query": "What should be done if a claim can't be explained because information is missing?",
+    "expected_relevant_sections": ["CLM-5", "BEN-5"]
+  },
+  {
+    "query_id": "how_to_appeal",
+    "query": "How does a member file an appeal for a denied claim?",
+    "expected_relevant_sections": ["APL-2", "APL-1"]
+  },
+  {
+    "query_id": "appeal_vs_paperwork",
+    "query": "When should an associate recommend a formal appeal versus just fixing missing paperwork?",
+    "expected_relevant_sections": ["APL-5", "PA-5"]
+  },
+  {
+    "query_id": "pt_prior_auth_requirement",
+    "query": "Does an initial physical therapy visit need prior authorization?",
+    "expected_relevant_sections": ["PA-2", "BEN-4"]
+  },
+  {
+    "query_id": "vague_denial_question",
+    "query": "My claim was denied. What's wrong with it?",
+    "expected_relevant_sections": ["CLM-1"],
+    "tags": ["ambiguous"],
+    "notes": "Intentionally vague/incomplete -- there is no specific denial reason, service, or plan named, so a lower-confidence or missed retrieval here is expected rather than a bug. Do not tune retrieval to force this to succeed; see evals/retrieval_eval.py for why this is a legitimate failure, not a defect, at this stage."
+  },
+  {
+    "query_id": "paraphrase_auth_mri",
+    "query": "Before my knee gets scanned, do I need the plan's permission first?",
+    "expected_relevant_sections": ["IMG-2", "PA-2", "BEN-2"],
+    "tags": ["paraphrase"],
+    "notes": "Deliberately avoids 'MRI' and 'prior authorization' -- tests whether retrieval can bridge 'scanned'/'permission' to the same concept."
+  },
+  {
+    "query_id": "paraphrase_auth_window",
+    "query": "If the plan's approval was only good for a certain stretch of time, and my appointment fell outside that window, does the approval still apply?",
+    "expected_relevant_sections": ["PA-3"],
+    "tags": ["paraphrase"],
+    "notes": "Deliberately avoids 'effective date', 'expiration date', and 'expired' -- tests whether retrieval can bridge 'a certain stretch of time'/'fell outside that window' to the same concept."
+  },
+  {
+    "query_id": "paraphrase_network",
+    "query": "What happens to my bill if I see a doctor who isn't part of the plan's contracted group?",
+    "expected_relevant_sections": ["NET-1", "NET-3"],
+    "tags": ["paraphrase"],
+    "notes": "Deliberately avoids 'in-network' and 'out-of-network' -- tests whether retrieval can bridge 'contracted group' to network participation."
+  },
+  {
+    "query_id": "paraphrase_appeals",
+    "query": "If I don't agree with how my claim was handled, how do I ask the plan to take another look at it?",
+    "expected_relevant_sections": ["APL-1", "APL-2"],
+    "tags": ["paraphrase"],
+    "notes": "Deliberately avoids the word 'appeal' -- tests whether retrieval can bridge 'take another look at it' to the formal appeals process."
+  }
+]

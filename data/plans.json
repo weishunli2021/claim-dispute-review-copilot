@@ -1,0 +1,20 @@
+[
+  {
+    "plan_id": "PLAN-GOLD",
+    "plan_name": "Meridian Gold PPO",
+    "plan_type": "PPO",
+    "network_name": "Meridian Preferred Network"
+  },
+  {
+    "plan_id": "PLAN-SILVER",
+    "plan_name": "Meridian Silver HMO",
+    "plan_type": "HMO",
+    "network_name": "Meridian Silver Network"
+  },
+  {
+    "plan_id": "PLAN-BRONZE",
+    "plan_name": "Meridian Bronze Select",
+    "plan_type": "EPO",
+    "network_name": "Meridian Bronze Network"
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "benefit_id": "BEN-GOLD-MRI-KNEE",
+    "plan_id": "PLAN-GOLD",
+    "service_code": "MRI-KNEE",
+    "covered": true,
+    "requires_prior_auth": true,
+    "network_requirement": "in_network_only",
+    "notes": "Outpatient knee MRI requires prior authorization under this plan."
+  },
+  {
+    "benefit_id": "BEN-GOLD-PT-INITIAL",
+    "plan_id": "PLAN-GOLD",
+    "service_code": "PT-INITIAL",
+    "covered": true,
+    "requires_prior_auth": false,
+    "network_requirement": "in_network_only",
+    "notes": "Initial physical therapy visit is covered only when performed in-network."
+  },
+  {
+    "benefit_id": "BEN-SILVER-LAB-BASIC",
+    "plan_id": "PLAN-SILVER",
+    "service_code": "LAB-BASIC",
+    "covered": false,
+    "requires_prior_auth": false,
+    "network_requirement": null,
+    "notes": "Basic lab panel is not a covered benefit under this plan."
+  }
+]
