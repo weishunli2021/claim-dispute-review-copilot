@@ -42,3 +42,6 @@ logs/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local-only docs (kept on disk, not published to the repo)
+docs/DEMO_RUNBOOK.md
