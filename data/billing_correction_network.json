@@ -1,0 +1,16 @@
+{
+  "plan_id": "PLN-BILL-01",
+  "plan_network_name": "Synthetic Choice Network",
+  "providers": [
+    {
+      "provider_id": "PRV-BILL-ACTUAL",
+      "name": "Dr. S. Whitfield",
+      "network_name": "Synthetic Choice Network"
+    },
+    {
+      "provider_id": "PRV-BILL-WRONG",
+      "name": "Dr. A. Kowalski",
+      "network_name": "Sunrise Alliance Network"
+    }
+  ]
+}

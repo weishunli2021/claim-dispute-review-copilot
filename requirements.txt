@@ -1,0 +1,34 @@
+streamlit>=1.38,<2.0
+pydantic>=2.7,<3.0
+python-dotenv>=1.0,<2.0
+pytest>=8.0,<9.0
+
+# Vector RAG (evidence-retrieval layer only -- see rag/)
+langchain-text-splitters>=0.3,<0.4
+chromadb>=0.5,<2.0
+scikit-learn>=1.4,<2.0
+joblib>=1.3,<2.0
+
+# Semantic embedding provider (rag/embeddings.py: SemanticEmbeddingProvider).
+# Pulls in torch + transformers as transitive dependencies. No API key --
+# runs sentence-transformers/all-MiniLM-L6-v2 fully locally.
+sentence-transformers>=3.0,<7.0
+
+# Knowledge Graph prototype (graph/) -- in-memory graph only, no external
+# graph database/service. See graph/builder.py for why NetworkX was chosen
+# for this stage and why it is not a production graph-platform choice.
+networkx>=3.0,<4.0
+
+# Agent orchestration (agents/) -- LangGraph's StateGraph runs the
+# deterministic node/routing workflow in agents/case_agent.py. No LLM call
+# and no full `langchain` package: langchain-core is pulled in only for
+# LangGraph's own graph/runnable primitives (StateGraph, END), not for any
+# chain, prompt, or model-wrapper functionality.
+langgraph>=1.0,<2.0
+langchain-core>=1.0,<2.0
+
+# H1: application/llm_adapter.py's single generation adapter (Responses API
+# structured-output parsing). Imported ONLY inside application/ -- see
+# tests/test_project_structure.py: test_openai_sdk_confined_to_generation_adapter.
+# No other provider SDK; no failover/routing.
+openai>=1.50,<2.0

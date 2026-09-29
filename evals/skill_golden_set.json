@@ -1,0 +1,138 @@
+[
+  {
+    "case_id": "investigate_claim_case1",
+    "skill_name": "investigate_claim",
+    "input": {"claim_id": "CLM-1001", "query": "My claim was denied. What's wrong with it?"},
+    "expected_status": "COMPLETED",
+    "expected_evidence_characteristics": {
+      "claim_id": "CLM-1001",
+      "policy_chunks_present": true,
+      "graph_relationships_present": true
+    },
+    "expected_missing_categories": ["prior_authorization"],
+    "expected_next_capability": null,
+    "expected_dependencies": ["context.hybrid_retriever.build_evidence_package"],
+    "rationale": "data/claims.json + data/benefits.json + data/providers.json show member, plan, a present covered benefit, and a resolvable servicing provider for CLM-1001 -- all four critical categories are satisfied, so investigate_claim must report COMPLETED even though no matching prior authorization exists in data/prior_authorizations.json for M-1001."
+  },
+  {
+    "case_id": "investigate_claim_case5",
+    "skill_name": "investigate_claim",
+    "input": {"claim_id": "CLM-1005", "query": "Why was my specialist visit claim denied?"},
+    "expected_status": "INSUFFICIENT_EVIDENCE",
+    "expected_evidence_characteristics": {
+      "claim_id": "CLM-1005"
+    },
+    "expected_missing_categories": ["benefit", "prior_authorization", "servicing_provider"],
+    "expected_next_capability": "escalate_case",
+    "expected_dependencies": ["context.hybrid_retriever.build_evidence_package"],
+    "rationale": "data/benefits.json has no record for PLAN-BRONZE + SPECIALIST-VISIT, and data/providers.json has no record for PRV-9999 (CLM-1005's own servicing provider_id) -- two of the four critical categories are unresolved, so investigate_claim must report INSUFFICIENT_EVIDENCE and suggest escalate_case as the next capability."
+  },
+  {
+    "case_id": "explain_benefit_covered_true",
+    "skill_name": "explain_benefit",
+    "input": {"member_id": "M-1001", "service_code": "MRI-KNEE"},
+    "expected_status": "COMPLETED",
+    "expected_evidence_characteristics": {
+      "benefit_present": true,
+      "benefit_covered": true
+    },
+    "expected_missing_categories": [],
+    "expected_next_capability": null,
+    "expected_dependencies": [
+      "tools.member_tool.get_member",
+      "tools.plan_tool.get_plan",
+      "tools.benefits_tool.get_benefits",
+      "rag.retriever.search_policy"
+    ],
+    "rationale": "data/members.json maps M-1001 to PLAN-GOLD; data/benefits.json has BEN-GOLD-MRI-KNEE with covered=true. A present, covered benefit record means nothing is missing."
+  },
+  {
+    "case_id": "explain_benefit_covered_false",
+    "skill_name": "explain_benefit",
+    "input": {"member_id": "M-1003", "service_code": "LAB-BASIC"},
+    "expected_status": "COMPLETED",
+    "expected_evidence_characteristics": {
+      "benefit_present": true,
+      "benefit_covered": false
+    },
+    "expected_missing_categories": [],
+    "expected_next_capability": null,
+    "expected_dependencies": [
+      "tools.member_tool.get_member",
+      "tools.plan_tool.get_plan",
+      "tools.benefits_tool.get_benefits",
+      "rag.retriever.search_policy"
+    ],
+    "rationale": "data/members.json maps M-1003 to PLAN-SILVER; data/benefits.json has BEN-SILVER-LAB-BASIC with covered=false. This is an AUTHORITATIVE, present benefit determination -- covered=false must be reported as COMPLETED, never as missing evidence."
+  },
+  {
+    "case_id": "explain_benefit_record_missing",
+    "skill_name": "explain_benefit",
+    "input": {"member_id": "M-1005", "service_code": "SPECIALIST-VISIT"},
+    "expected_status": "INSUFFICIENT_EVIDENCE",
+    "expected_evidence_characteristics": {
+      "benefit_present": false
+    },
+    "expected_missing_categories": ["benefit"],
+    "expected_next_capability": "escalate_case",
+    "expected_dependencies": [
+      "tools.member_tool.get_member",
+      "tools.plan_tool.get_plan",
+      "tools.benefits_tool.get_benefits",
+      "rag.retriever.search_policy"
+    ],
+    "rationale": "data/members.json maps M-1005 to PLAN-BRONZE; data/benefits.json has NO record for PLAN-BRONZE + SPECIALIST-VISIT. The genuine absence of a rule must be reported as missing evidence, never inferred as covered or not covered."
+  },
+  {
+    "case_id": "prior_authorization_case1",
+    "skill_name": "check_prior_authorization",
+    "input": {"member_id": "M-1001", "service_code": "MRI-KNEE"},
+    "expected_status": "COMPLETED",
+    "expected_evidence_characteristics": {
+      "authorizations_count": 0
+    },
+    "expected_missing_categories": ["prior_authorization"],
+    "expected_next_capability": null,
+    "expected_dependencies": [
+      "tools.prior_auth_tool.get_prior_authorizations",
+      "rag.retriever.search_policy"
+    ],
+    "rationale": "data/prior_authorizations.json has no record with member_id=M-1001. An empty result is itself a complete, valid finding (never an assumed denial), so status stays COMPLETED with prior_authorization flagged as missing."
+  },
+  {
+    "case_id": "prior_authorization_case2",
+    "skill_name": "check_prior_authorization",
+    "input": {"member_id": "M-1002", "service_code": "MRI-KNEE"},
+    "expected_status": "COMPLETED",
+    "expected_evidence_characteristics": {
+      "authorizations_count": 2,
+      "authorization_ids": ["PA-1501", "PA-2001"]
+    },
+    "expected_missing_categories": [],
+    "expected_next_capability": null,
+    "expected_dependencies": [
+      "tools.prior_auth_tool.get_prior_authorizations",
+      "rag.retriever.search_policy"
+    ],
+    "rationale": "data/prior_authorizations.json has exactly two records for member_id=M-1002 + service_code=MRI-KNEE (PA-1501 EXPIRED, PA-2001 APPROVED) -- both must be preserved and returned, not collapsed to just the currently-applicable one."
+  },
+  {
+    "case_id": "escalation_case5",
+    "skill_name": "escalate_case",
+    "input": {
+      "case_id": "CLM-1005",
+      "reason": "Critical structured evidence (benefit, servicing provider) is unresolved.",
+      "missing_information": ["benefit", "servicing_provider", "prior_authorization"],
+      "evidence_summary": {"claim_id": "CLM-1005"}
+    },
+    "expected_status": "COMPLETED",
+    "expected_evidence_characteristics": {
+      "synthetic": true,
+      "external_system_contacted": false
+    },
+    "expected_missing_categories": ["benefit", "servicing_provider", "prior_authorization"],
+    "expected_next_capability": null,
+    "expected_dependencies": [],
+    "rationale": "escalate_case only assembles a synthetic escalation package -- it never contacts an external system -- so external_system_contacted must always be false, and the missing_information passed in must be carried through unchanged for the human reviewer."
+  }
+]

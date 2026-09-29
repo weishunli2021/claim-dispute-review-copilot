@@ -1,0 +1,48 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local vector stores / indexes
+*.faiss
+*.index
+/rag/index/
+/rag/index_billing/
+/rag/*.db
+chroma_db/
+.chroma/
+
+# Local knowledge graph stores
+/graph/*.db
+*.graphdb
+
+# Logs
+*.log
+/observability/logs/
+logs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local-only docs (kept on disk, not published to the repo)
+docs/DEMO_RUNBOOK.md

@@ -1,0 +1,439 @@
+[
+  {
+    "scenario_id": "E01",
+    "description": "CLM-1001 denial explanation with zero authorization records",
+    "passed": true,
+    "checks": [
+      {
+        "name": "evidence_status",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "EVIDENCE_SUFFICIENT"
+      },
+      {
+        "name": "generation_attempted",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "structured_brief_produced",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "validation_passed",
+        "passed": true,
+        "observed": "PASSED",
+        "expected": "PASSED"
+      },
+      {
+        "name": "claim_status_denied",
+        "passed": true,
+        "observed": "DENIED",
+        "expected": "DENIED"
+      },
+      {
+        "name": "denial_reason_auth_required",
+        "passed": true,
+        "observed": "AUTH_REQUIRED",
+        "expected": "AUTH_REQUIRED"
+      },
+      {
+        "name": "authorization_count_zero",
+        "passed": true,
+        "observed": 0,
+        "expected": 0
+      },
+      {
+        "name": "no_conclusive_validity_claim",
+        "passed": true,
+        "observed": "The claim is recorded as DENIED for AUTH_REQUIRED; no authorization record was found in the available evidence.",
+        "expected": "must not claim absence conclusively proves validity"
+      },
+      {
+        "name": "no_adjudicative_authority_claim",
+        "passed": true,
+        "observed": "VERIFY_AUTHORIZATION_INFORMATION",
+        "expected": "one of the four approved advisory action codes"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "E02",
+    "description": "CLM-1002 preserves both authorization candidates, declares neither applicable",
+    "passed": true,
+    "checks": [
+      {
+        "name": "evidence_status",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "EVIDENCE_SUFFICIENT"
+      },
+      {
+        "name": "claim_status_paid",
+        "passed": true,
+        "observed": "PAID",
+        "expected": "PAID"
+      },
+      {
+        "name": "pa_1501_present_expired",
+        "passed": true,
+        "observed": "EXPIRED",
+        "expected": "EXPIRED"
+      },
+      {
+        "name": "pa_2001_present_approved",
+        "passed": true,
+        "observed": "APPROVED",
+        "expected": "APPROVED"
+      },
+      {
+        "name": "both_candidates_in_assembled_context",
+        "passed": true,
+        "observed": [
+          "auth:PA-1501",
+          "auth:PA-2001"
+        ],
+        "expected": [
+          "auth:PA-1501",
+          "auth:PA-2001"
+        ]
+      },
+      {
+        "name": "no_reference_declares_one_applicable",
+        "passed": true,
+        "observed": [
+          "auth:PA-1501: Prior authorization candidate / status=EXPIRED service_code=MRI-KNEE effective_date=2025-01-01 expiration_date=2025-06-30",
+          "auth:PA-2001: Prior authorization candidate / status=APPROVED service_code=MRI-KNEE effective_date=2026-01-01 expiration_date=2026-06-30"
+        ],
+        "expected": "no reference text contains the word 'applicable'"
+      },
+      {
+        "name": "validation_passed",
+        "passed": true,
+        "observed": "PASSED",
+        "expected": "PASSED"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "E03",
+    "description": "CLM-1003 present-but-not-covered benefit treated as explicit negative evidence",
+    "passed": true,
+    "checks": [
+      {
+        "name": "claim_status_denied",
+        "passed": true,
+        "observed": "DENIED",
+        "expected": "DENIED"
+      },
+      {
+        "name": "denial_reason_service_not_covered",
+        "passed": true,
+        "observed": "SERVICE_NOT_COVERED",
+        "expected": "SERVICE_NOT_COVERED"
+      },
+      {
+        "name": "benefit_present_not_none",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "benefit_covered_is_explicitly_false",
+        "passed": true,
+        "observed": false,
+        "expected": false
+      },
+      {
+        "name": "benefit_not_flagged_as_missing",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "evidence_status_sufficient",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "EVIDENCE_SUFFICIENT"
+      },
+      {
+        "name": "validation_passed",
+        "passed": true,
+        "observed": "PASSED",
+        "expected": "PASSED"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "E04",
+    "description": "CLM-1004 resolved-but-out-of-network provider treated as explicit evidence, not a gap",
+    "passed": true,
+    "checks": [
+      {
+        "name": "claim_status_denied",
+        "passed": true,
+        "observed": "DENIED",
+        "expected": "DENIED"
+      },
+      {
+        "name": "denial_reason_out_of_network",
+        "passed": true,
+        "observed": "OUT_OF_NETWORK_PROVIDER",
+        "expected": "OUT_OF_NETWORK_PROVIDER"
+      },
+      {
+        "name": "provider_resolved",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "provider_network_status_out_of_network",
+        "passed": true,
+        "observed": "out-of-network",
+        "expected": "out-of-network"
+      },
+      {
+        "name": "provider_not_flagged_as_missing",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "evidence_status_sufficient",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "EVIDENCE_SUFFICIENT"
+      },
+      {
+        "name": "validation_passed",
+        "passed": true,
+        "observed": "PASSED",
+        "expected": "PASSED"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "E05",
+    "description": "CLM-1005 insufficient evidence routes to human review, zero model calls",
+    "passed": true,
+    "checks": [
+      {
+        "name": "evidence_status_needs_review",
+        "passed": true,
+        "observed": "NEEDS_REVIEW",
+        "expected": "NEEDS_REVIEW"
+      },
+      {
+        "name": "generation_not_attempted",
+        "passed": true,
+        "observed": "NOT_ATTEMPTED",
+        "expected": "NOT_ATTEMPTED"
+      },
+      {
+        "name": "validation_not_run",
+        "passed": true,
+        "observed": "NOT_RUN",
+        "expected": "NOT_RUN"
+      },
+      {
+        "name": "zero_model_calls",
+        "passed": true,
+        "observed": 0,
+        "expected": 0
+      },
+      {
+        "name": "no_fabricated_brief",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "benefit_missing_explicit",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "servicing_provider_unresolved_explicit",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "review_packet_produced",
+        "passed": true,
+        "observed": "COMPLETED",
+        "expected": "COMPLETED"
+      },
+      {
+        "name": "external_system_not_contacted",
+        "passed": true,
+        "observed": false,
+        "expected": false
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "E06",
+    "description": "Isolated Case-2 variation (PA-2001 removed via DataStore-boundary override) - consistently absent from structured facts, graph, assembled context, and the rendered prompt; no auto-escalation, no fabricated answer",
+    "passed": true,
+    "checks": [
+      {
+        "name": "only_pa_1501_present_in_isolated_context",
+        "passed": true,
+        "observed": [
+          "auth:PA-1501"
+        ],
+        "expected": [
+          "auth:PA-1501"
+        ]
+      },
+      {
+        "name": "pa_2001_absent_from_structured_facts",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "pa_2001_absent_from_graph_relationships",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "pa_2001_absent_from_assembled_references",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "pa_2001_absent_from_rendered_prompt",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "system_did_not_auto_escalate",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "anything other than NEEDS_REVIEW (prior_authorization is non-blocking for sufficiency)"
+      },
+      {
+        "name": "evidence_status_sufficient",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "EVIDENCE_SUFFICIENT"
+      },
+      {
+        "name": "conforming_brief_validates",
+        "passed": true,
+        "observed": "PASSED",
+        "expected": "PASSED"
+      },
+      {
+        "name": "brief_citing_removed_candidate_fails_validation",
+        "passed": true,
+        "observed": "FAILED",
+        "expected": "FAILED"
+      }
+    ],
+    "notes": "Isolation was achieved via a temporary, reversible DataStore-boundary override (store.prior_authorizations and its prior_authorizations_by_member_service group, plus a graph-cache clear/rebuild) rather than a tool-function patch -- the earlier tool-boundary-only approach could leave PA-2001 visible via graph-derived evidence even though structured facts showed it removed. data/prior_authorizations.json was never read or modified for this variation; the override is fully restored in a finally block regardless of outcome."
+  },
+  {
+    "scenario_id": "E07",
+    "description": "Rephrased CLM-1001 question yields the same authoritative facts (no lexical-match requirement)",
+    "passed": true,
+    "checks": [
+      {
+        "name": "evidence_status_sufficient",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "EVIDENCE_SUFFICIENT"
+      },
+      {
+        "name": "generation_drafted",
+        "passed": true,
+        "observed": "DRAFTED",
+        "expected": "DRAFTED"
+      },
+      {
+        "name": "validation_passed",
+        "passed": true,
+        "observed": "PASSED",
+        "expected": "PASSED"
+      },
+      {
+        "name": "same_claim_status_as_canonical_e01_wording",
+        "passed": true,
+        "observed": "DENIED",
+        "expected": "DENIED"
+      },
+      {
+        "name": "same_denial_reason_as_canonical_e01_wording",
+        "passed": true,
+        "observed": "AUTH_REQUIRED",
+        "expected": "AUTH_REQUIRED"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "E08",
+    "description": "Unknown claim CLM-9999 - clean not-found error, distinct from Case 5",
+    "passed": true,
+    "checks": [
+      {
+        "name": "evidence_status_error",
+        "passed": true,
+        "observed": "ERROR",
+        "expected": "ERROR"
+      },
+      {
+        "name": "generation_not_attempted",
+        "passed": true,
+        "observed": "NOT_ATTEMPTED",
+        "expected": "NOT_ATTEMPTED"
+      },
+      {
+        "name": "validation_not_run",
+        "passed": true,
+        "observed": "NOT_RUN",
+        "expected": "NOT_RUN"
+      },
+      {
+        "name": "zero_model_calls",
+        "passed": true,
+        "observed": 0,
+        "expected": 0
+      },
+      {
+        "name": "no_fabricated_brief",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "no_evidence_package_fabricated",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "distinct_from_case5_needs_review",
+        "passed": true,
+        "observed": "ERROR",
+        "expected": "anything other than NEEDS_REVIEW"
+      }
+    ],
+    "notes": ""
+  }
+]

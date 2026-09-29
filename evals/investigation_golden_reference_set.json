@@ -1,0 +1,539 @@
+{
+  "schema_version": "golden_reference.v1",
+  "cases": [
+    {
+      "reference_case_id": "GOLDREF-CLM-1001",
+      "claim_id": "CLM-1001",
+      "scenario_title": "AUTH_REQUIRED denial for an outpatient knee MRI",
+      "scenario_description": "Member M-1001 (Gold plan) had an outpatient knee MRI (MRI-KNEE) denied with reason code AUTH_REQUIRED. The service is a covered benefit that requires prior authorization, and no matching authorization record exists for this member in the synthetic dataset.",
+      "required_findings": [
+        {
+          "finding_id": "f1",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The claim is DENIED with denial_reason_code AUTH_REQUIRED.",
+          "supporting_record_ids": ["CLM-1001"],
+          "supporting_policy_section_ids": ["CLM-2"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.claim.denial_reason_code",
+            "comparator": "equals",
+            "expected_value": "AUTH_REQUIRED"
+          }
+        },
+        {
+          "finding_id": "f2",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "MRI-KNEE is a covered benefit under the member's Gold plan, and that plan's benefit record requires prior authorization for it.",
+          "supporting_record_ids": ["BEN-GOLD-MRI-KNEE"],
+          "supporting_policy_section_ids": ["BEN-2", "IMG-2", "PA-2"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.benefit.covered",
+            "comparator": "is_true"
+          }
+        },
+        {
+          "finding_id": "f3",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "No prior-authorization record exists for member M-1001 for any service in the synthetic dataset (the only two authorization records on file both belong to member M-1002).",
+          "supporting_record_ids": ["data/prior_authorizations.json"],
+          "supporting_policy_section_ids": ["PA-4"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.prior_authorizations",
+            "comparator": "length_equals",
+            "expected_value": 0
+          }
+        },
+        {
+          "finding_id": "f4",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "Both the servicing provider (PRV-1001, Lakeside Imaging Center) and the ordering provider (PRV-4001, Dr. Ana Kowalski) are in-network -- network participation is not the basis of this denial.",
+          "supporting_record_ids": ["PRV-1001", "PRV-4001"],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.servicing_provider",
+            "comparator": "is_not_none"
+          }
+        },
+        {
+          "finding_id": "f5",
+          "category": "DETERMINISTIC_SYSTEM_BEHAVIOR",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The investigation agent reaches a terminal EVIDENCE_SUFFICIENT status for this claim -- all critical structured-fact categories (member/plan, benefit, servicing provider, ordering provider) are resolved, so the absent authorization is itself the finding, not a data gap that should route to human review.",
+          "supporting_record_ids": [],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "agents.state.AgentResult",
+            "field_path": "status",
+            "comparator": "equals",
+            "expected_value": "EVIDENCE_SUFFICIENT"
+          }
+        },
+        {
+          "finding_id": "f6",
+          "category": "QUALITATIVE_HUMAN_JUDGMENT",
+          "classification": "QUALITATIVE_HUMAN_REVIEW",
+          "statement": "The brief states plainly, without hedging into false certainty, that AUTH_REQUIRED reflects only the absence of a matching, currently-effective authorization on file at processing time -- and does not by itself mean the service was never authorized at any point (PA-4).",
+          "supporting_record_ids": [],
+          "supporting_policy_section_ids": ["PA-4"]
+        }
+      ],
+      "missing_information": [
+        "No prior-authorization record for member M-1001 covering service MRI-KNEE exists anywhere in the synthetic dataset (data/prior_authorizations.json only has records for member M-1002)."
+      ],
+      "required_uncertainty_or_qualifications": [
+        "AUTH_REQUIRED reflects the absence of a matching, currently-effective authorization at the time the claim was processed; it does not confirm the service was never authorized at any point (PA-4).",
+        "Whether a prior-authorization request was ever submitted for this member/service but is simply not reflected in this dataset is unknown."
+      ],
+      "verification_or_human_review_actions": [
+        "Confirm with the ordering physician's office (Dr. Ana Kowalski, PRV-4001) whether a prior-authorization request was ever submitted for this service (PA-5).",
+        "If no request was ever submitted: per policy guidance (PA-5, APL-5), submitting a new prior-authorization request can sometimes resolve this faster than a formal appeal -- this is a suggested next step to consider, not a required or guaranteed one, and a formal appeal remains available, particularly if the member is disputing the underlying denial determination itself rather than missing paperwork."
+      ],
+      "unsupported_or_prohibited_conclusions": [
+        "Must not state or imply the claim will be approved, paid, or that the denial will be reversed.",
+        "Must not state that prior authorization was 'never obtained' as a settled fact -- only that no matching record was found in the available data.",
+        "Must not recommend or estimate any specific dollar payment outcome.",
+        "Must not present 'submit a new prior-authorization request' as the only or guaranteed next step -- PA-5 and APL-5 both hedge this as something that 'can sometimes'/'may' help, never a certainty, and a formal appeal remains a legitimate path a member can choose."
+      ],
+      "known_ambiguities_or_questions_for_human_review": [
+        "Whether the member or provider ever attempted to submit a prior-authorization request is not observable from the synthetic dataset and needs provider-office follow-up outside this tool."
+      ],
+      "reference_origin": "AI-drafted",
+      "review_status": "pending_human_review",
+      "schema_version": "golden_reference.v1",
+      "source_fingerprint": "data/claims.json@sha256:9a5d175938dc; data/benefits.json@sha256:77c7aa00eb54; data/prior_authorizations.json@sha256:299fb6866c93; data/providers.json@sha256:ad46bd1adb32; documents/imaging_policy.md@sha256:acf788df4db0; documents/prior_authorization_policy.md@sha256:e44507629c53; documents/claims_denial_guide.md@sha256:de5861231f53; documents/appeals_guide.md@sha256:ebc72358d542; evals/agent_golden_set.json@sha256:34d85273ac73; evals/hybrid_retrieval_golden_set.json@sha256:a31f8e919aa5",
+      "review_notes": "Module 6 correction: the original wording ('the next step is submitting a new prior-authorization request, not proceeding directly to a formal appeal') was too categorical relative to its own cited sources -- PA-5 says a missing authorization 'can SOMETIMES be resolved' by a new request, and APL-5 says a new request 'MAY be faster' and frames appeal-first as appropriate when the underlying determination (not just paperwork) is disputed. Reworded to match that hedged, conditional source language and added an explicit prohibited-conclusion entry against overclaiming this as a guaranteed/required step. Still pending human review -- this correction does not itself constitute review or approval."
+    },
+    {
+      "reference_case_id": "GOLDREF-CLM-1002",
+      "claim_id": "CLM-1002",
+      "scenario_title": "Paid knee MRI with an authorization history containing one expired and one applicable record",
+      "scenario_description": "Member M-1002 (Gold plan) had an outpatient knee MRI (MRI-KNEE) paid, with billed $1,800.00 and allowed $1,200.00. Two authorization records exist for this member/service: PA-1501 (EXPIRED, 2025 window) and PA-2001 (APPROVED, 2026-01-01 to 2026-06-30).",
+      "required_findings": [
+        {
+          "finding_id": "f1",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The claim status is PAID with no denial_reason_code recorded.",
+          "supporting_record_ids": ["CLM-1002"],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.claim.status",
+            "comparator": "equals",
+            "expected_value": "PAID"
+          }
+        },
+        {
+          "finding_id": "f2",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "Two prior-authorization records exist for this member/service: PA-1501 (EXPIRED, effective 2025-01-01 to 2025-06-30) and PA-2001 (APPROVED, effective 2026-01-01 to 2026-06-30).",
+          "supporting_record_ids": ["PA-1501", "PA-2001"],
+          "supporting_policy_section_ids": ["PA-3"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.prior_authorizations",
+            "comparator": "length_equals",
+            "expected_value": 2
+          }
+        },
+        {
+          "finding_id": "f3",
+          "category": "SOURCE_DERIVED",
+          "classification": "QUALITATIVE_HUMAN_REVIEW",
+          "statement": "PA-2001's effective window (2026-01-01 to 2026-06-30) covers the claim's date of service (2026-02-12); PA-1501's window (2025-01-01 to 2025-06-30) does not -- PA-2001 is the record applicable to this claim, per the date-window rule in PA-3, without characterizing PA-1501 as irrelevant to the member's authorization history.",
+          "supporting_record_ids": ["PA-1501", "PA-2001", "CLM-1002"],
+          "supporting_policy_section_ids": ["PA-3"]
+        },
+        {
+          "finding_id": "f4",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "Both the servicing provider (PRV-1001) and ordering provider (PRV-4003, Dr. Morgan Diaz) are in-network.",
+          "supporting_record_ids": ["PRV-1001", "PRV-4003"],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.ordering_provider",
+            "comparator": "is_not_none"
+          }
+        },
+        {
+          "finding_id": "f5",
+          "category": "DETERMINISTIC_SYSTEM_BEHAVIOR",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The investigation agent reaches a terminal EVIDENCE_SUFFICIENT status for this claim.",
+          "supporting_record_ids": [],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "agents.state.AgentResult",
+            "field_path": "status",
+            "comparator": "equals",
+            "expected_value": "EVIDENCE_SUFFICIENT"
+          }
+        },
+        {
+          "finding_id": "f6",
+          "category": "QUALITATIVE_HUMAN_JUDGMENT",
+          "classification": "QUALITATIVE_HUMAN_REVIEW",
+          "statement": "The brief explicitly declines to explain the $600.00 difference between billed and allowed amount, stating that no fee-schedule or pricing data is available, rather than guessing a contractual reason.",
+          "supporting_record_ids": ["CLM-1002"],
+          "supporting_policy_section_ids": []
+        }
+      ],
+      "missing_information": [
+        "No fee-schedule, contracted-rate, or pricing-methodology data is available anywhere in this dataset to explain why the allowed amount ($1,200.00) differs from the billed amount ($1,800.00)."
+      ],
+      "required_uncertainty_or_qualifications": [
+        "The reason the allowed amount is lower than the billed amount is unknown from the available synthetic data and must not be attributed to a guessed specific cause."
+      ],
+      "verification_or_human_review_actions": [
+        "If the member disputes the allowed amount itself (as opposed to authorization or coverage), route to whichever team owns fee-schedule/pricing questions -- outside this tool's scope."
+      ],
+      "unsupported_or_prohibited_conclusions": [
+        "Must not invent a specific contractual or fee-schedule reason for the billed-vs-allowed difference.",
+        "Must not state PA-1501 was irrelevant or erroneous -- it is a valid historical record, simply outside this claim's date-of-service window."
+      ],
+      "known_ambiguities_or_questions_for_human_review": [
+        "Whether the $600.00 reduction reflects a standard network discount or something else cannot be determined from the available synthetic data."
+      ],
+      "reference_origin": "AI-drafted",
+      "review_status": "pending_human_review",
+      "schema_version": "golden_reference.v1",
+      "source_fingerprint": "data/claims.json@sha256:9a5d175938dc; data/benefits.json@sha256:77c7aa00eb54; data/prior_authorizations.json@sha256:299fb6866c93; data/providers.json@sha256:ad46bd1adb32; documents/prior_authorization_policy.md@sha256:e44507629c53; documents/imaging_policy.md@sha256:acf788df4db0; evals/agent_golden_set.json@sha256:34d85273ac73; evals/hybrid_retrieval_golden_set.json@sha256:a31f8e919aa5",
+      "review_notes": null
+    },
+    {
+      "reference_case_id": "GOLDREF-CLM-1003",
+      "claim_id": "CLM-1003",
+      "scenario_title": "SERVICE_NOT_COVERED denial for a basic lab panel under a Silver plan",
+      "scenario_description": "Member M-1003 (Silver plan) had a basic lab panel (LAB-BASIC) denied with reason code SERVICE_NOT_COVERED. The plan's benefit record explicitly and authoritatively marks this service as not covered -- this is a present, resolved determination, not missing data.",
+      "required_findings": [
+        {
+          "finding_id": "f1",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The claim is DENIED with denial_reason_code SERVICE_NOT_COVERED.",
+          "supporting_record_ids": ["CLM-1003"],
+          "supporting_policy_section_ids": ["CLM-3"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.claim.denial_reason_code",
+            "comparator": "equals",
+            "expected_value": "SERVICE_NOT_COVERED"
+          }
+        },
+        {
+          "finding_id": "f2",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "A benefit record exists for LAB-BASIC under the Silver plan and explicitly marks it as not covered (covered=false) -- an authoritative, present determination, not an absent record.",
+          "supporting_record_ids": ["BEN-SILVER-LAB-BASIC"],
+          "supporting_policy_section_ids": ["BEN-3"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.benefit.covered",
+            "comparator": "is_false"
+          }
+        },
+        {
+          "finding_id": "f3",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "LAB-BASIC does not require prior authorization, and the servicing provider (PRV-1002, QuickDraw Labs) and ordering provider (PRV-4002, Dr. Sam Rivera) are both in-network -- neither authorization nor network status is the basis of this denial.",
+          "supporting_record_ids": ["BEN-SILVER-LAB-BASIC", "PRV-1002", "PRV-4002"],
+          "supporting_policy_section_ids": ["PA-2"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.benefit.requires_prior_auth",
+            "comparator": "is_false"
+          }
+        },
+        {
+          "finding_id": "f4",
+          "category": "DETERMINISTIC_SYSTEM_BEHAVIOR",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The investigation agent reaches a terminal EVIDENCE_SUFFICIENT status for this claim.",
+          "supporting_record_ids": [],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "agents.state.AgentResult",
+            "field_path": "status",
+            "comparator": "equals",
+            "expected_value": "EVIDENCE_SUFFICIENT"
+          }
+        },
+        {
+          "finding_id": "f5",
+          "category": "QUALITATIVE_HUMAN_JUDGMENT",
+          "classification": "QUALITATIVE_HUMAN_REVIEW",
+          "statement": "The brief clearly distinguishes 'not a covered benefit under this plan' (a confirmed, present determination) from 'coverage unknown' -- and does not describe LAB-BASIC's no-prior-auth status as if it were relevant to why the claim was denied.",
+          "supporting_record_ids": ["BEN-SILVER-LAB-BASIC"],
+          "supporting_policy_section_ids": ["BEN-3"]
+        }
+      ],
+      "missing_information": [
+        "No prior-authorization record exists for member M-1003, though prior authorization is not required for LAB-BASIC and is not the basis of this denial."
+      ],
+      "required_uncertainty_or_qualifications": [
+        "This is an authoritative, present 'not covered' determination (BEN-SILVER-LAB-BASIC, covered=false) -- must never be phrased as if coverage is unknown or unresolved."
+      ],
+      "verification_or_human_review_actions": [
+        "If the member believes this service should be covered under their Silver plan, the available path is a formal appeal referencing the specific benefit determination (APL-2) -- not a new prior-authorization request, since authorization is not the issue here."
+      ],
+      "unsupported_or_prohibited_conclusions": [
+        "Must not suggest submitting a prior-authorization request as a remedy -- this service does not require one and doing so would not change the coverage determination.",
+        "Must not imply the denial resulted from a data or system error."
+      ],
+      "known_ambiguities_or_questions_for_human_review": [
+        "None identified -- this case's structured facts and policy basis are fully resolved from the available synthetic data."
+      ],
+      "reference_origin": "AI-drafted",
+      "review_status": "pending_human_review",
+      "schema_version": "golden_reference.v1",
+      "source_fingerprint": "data/claims.json@sha256:9a5d175938dc; data/benefits.json@sha256:77c7aa00eb54; data/prior_authorizations.json@sha256:299fb6866c93; data/providers.json@sha256:ad46bd1adb32; documents/benefits_guide.md@sha256:75644b6399a9; documents/claims_denial_guide.md@sha256:de5861231f53; documents/prior_authorization_policy.md@sha256:e44507629c53; documents/appeals_guide.md@sha256:ebc72358d542; evals/agent_golden_set.json@sha256:34d85273ac73; evals/hybrid_retrieval_golden_set.json@sha256:a31f8e919aa5",
+      "review_notes": null
+    },
+    {
+      "reference_case_id": "GOLDREF-CLM-1004",
+      "claim_id": "CLM-1004",
+      "scenario_title": "OUT_OF_NETWORK_PROVIDER denial for an initial physical therapy visit",
+      "scenario_description": "Member M-1004 (Gold plan) had an initial physical therapy visit (PT-INITIAL) denied with reason code OUT_OF_NETWORK_PROVIDER. The servicing provider (PRV-2002) is a real, resolved provider record with a confirmed out-of-network status; the service itself is a covered, no-prior-auth-required Gold benefit.",
+      "required_findings": [
+        {
+          "finding_id": "f1",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The claim is DENIED with denial_reason_code OUT_OF_NETWORK_PROVIDER.",
+          "supporting_record_ids": ["CLM-1004"],
+          "supporting_policy_section_ids": ["CLM-4"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.claim.denial_reason_code",
+            "comparator": "equals",
+            "expected_value": "OUT_OF_NETWORK_PROVIDER"
+          }
+        },
+        {
+          "finding_id": "f2",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "PT-INITIAL is a covered Gold-plan benefit that does not require prior authorization, but is only paid at its standard level when performed in-network.",
+          "supporting_record_ids": ["BEN-GOLD-PT-INITIAL"],
+          "supporting_policy_section_ids": ["BEN-4"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.benefit.covered",
+            "comparator": "is_true"
+          }
+        },
+        {
+          "finding_id": "f3",
+          "category": "SOURCE_DERIVED",
+          "classification": "QUALITATIVE_HUMAN_REVIEW",
+          "statement": "The servicing provider (PRV-2002, Sunrise Physical Therapy Group) is a real, resolved provider record whose network_status is explicitly 'out-of-network' with no network_name -- this must be described as a confirmed fact about the provider, never as the provider being unidentified, unknown, or unverifiable.",
+          "supporting_record_ids": ["PRV-2002"],
+          "supporting_policy_section_ids": ["NET-1", "NET-3"]
+        },
+        {
+          "finding_id": "f4",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The ordering provider (PRV-4002, Dr. Sam Rivera) is a separate, in-network record -- ordering-provider network status is not the basis of this denial, which concerns the servicing provider only.",
+          "supporting_record_ids": ["PRV-4002"],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.ordering_provider",
+            "comparator": "is_not_none"
+          }
+        },
+        {
+          "finding_id": "f5",
+          "category": "DETERMINISTIC_SYSTEM_BEHAVIOR",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The investigation agent reaches a terminal EVIDENCE_SUFFICIENT status for this claim -- an out-of-network servicing provider is a resolved fact, not missing evidence.",
+          "supporting_record_ids": [],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "agents.state.AgentResult",
+            "field_path": "status",
+            "comparator": "equals",
+            "expected_value": "EVIDENCE_SUFFICIENT"
+          }
+        },
+        {
+          "finding_id": "f6",
+          "category": "QUALITATIVE_HUMAN_JUDGMENT",
+          "classification": "QUALITATIVE_HUMAN_REVIEW",
+          "statement": "The brief does not conflate coverage (benefit_covered=true) with network eligibility (out-of-network) -- these are presented as independent determinations (NET-3), not as contradictory or confusing facts.",
+          "supporting_record_ids": ["BEN-GOLD-PT-INITIAL", "PRV-2002"],
+          "supporting_policy_section_ids": ["NET-3"]
+        }
+      ],
+      "missing_information": [
+        "No network-participation record links PRV-2002 to any network (network_name=null) -- this reflects the provider's genuine lack of a network contract, not a data gap."
+      ],
+      "required_uncertainty_or_qualifications": [
+        "Whether the member had a reasonable in-network alternative, or whether any out-of-network exception applies (e.g., an emergency circumstance per NET-3), is not stated anywhere in the available synthetic data and must not be assumed either way."
+      ],
+      "verification_or_human_review_actions": [
+        "If the member disputes the network-status determination itself or believes an exception should apply, the appropriate path is a formal appeal referencing this specific claim (APL-2), since this is a plan determination being disputed, not missing paperwork (APL-5).",
+        "Confirm PRV-2002's network status against the current provider directory before finalizing any explanation to the member, since network status can change over time (NET-4)."
+      ],
+      "unsupported_or_prohibited_conclusions": [
+        "Must not state or imply that PRV-2002 could not be found or identified -- it is a fully resolved provider record; only its network participation is negative.",
+        "Must not recommend a prior-authorization request as a remedy -- PT-INITIAL does not require one, and the denial reason is unrelated to authorization."
+      ],
+      "known_ambiguities_or_questions_for_human_review": [
+        "Whether any out-of-network exception circumstance applies to this specific visit is not observable from the available data."
+      ],
+      "reference_origin": "AI-drafted",
+      "review_status": "pending_human_review",
+      "schema_version": "golden_reference.v1",
+      "source_fingerprint": "data/claims.json@sha256:9a5d175938dc; data/benefits.json@sha256:77c7aa00eb54; data/providers.json@sha256:ad46bd1adb32; data/prior_authorizations.json@sha256:299fb6866c93; documents/claims_denial_guide.md@sha256:de5861231f53; documents/provider_network_policy.md@sha256:93d96557fe03; documents/benefits_guide.md@sha256:75644b6399a9; documents/appeals_guide.md@sha256:ebc72358d542; evals/agent_golden_set.json@sha256:34d85273ac73; evals/hybrid_retrieval_golden_set.json@sha256:a31f8e919aa5",
+      "review_notes": null
+    },
+    {
+      "reference_case_id": "GOLDREF-CLM-1005",
+      "claim_id": "CLM-1005",
+      "scenario_title": "Denial with no recorded reason code and multiple genuinely missing records",
+      "scenario_description": "Member M-1005 (Bronze plan) had a specialist visit (SPECIALIST-VISIT) denied, but no denial_reason_code is recorded, no benefit record exists for PLAN-BRONZE + SPECIALIST-VISIT, and no provider record exists for the claim's own recorded servicing provider_id (PRV-9999). This is the one original case that must route to human review rather than a resolved finding.",
+      "required_findings": [
+        {
+          "finding_id": "f1",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The claim is DENIED but has no denial_reason_code recorded at all.",
+          "supporting_record_ids": ["CLM-1005"],
+          "supporting_policy_section_ids": ["CLM-5"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.claim.denial_reason_code",
+            "comparator": "is_none"
+          }
+        },
+        {
+          "finding_id": "f2",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "No benefit record exists for plan_id=PLAN-BRONZE + service_code=SPECIALIST-VISIT -- a genuine absence, structurally distinct from CLM-1003's present-but-not-covered determination.",
+          "supporting_record_ids": ["data/benefits.json"],
+          "supporting_policy_section_ids": ["BEN-5"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.benefit",
+            "comparator": "is_none"
+          }
+        },
+        {
+          "finding_id": "f3",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "No provider record exists for provider_id=PRV-9999, this claim's own recorded servicing provider -- the servicing provider cannot be identified at all, which is a different and weaker claim than 'out-of-network'.",
+          "supporting_record_ids": ["data/providers.json"],
+          "supporting_policy_section_ids": ["CLM-5", "NET-4"],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.servicing_provider",
+            "comparator": "is_none"
+          }
+        },
+        {
+          "finding_id": "f4",
+          "category": "SOURCE_DERIVED",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The ordering provider (PRV-4004, Dr. Casey Kim) IS a resolvable, in-network record -- only the servicing side is missing, and this resolved fact should still be reported.",
+          "supporting_record_ids": ["PRV-4004"],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "context.models.EvidencePackage",
+            "field_path": "structured_facts.ordering_provider",
+            "comparator": "is_not_none"
+          }
+        },
+        {
+          "finding_id": "f5",
+          "category": "DETERMINISTIC_SYSTEM_BEHAVIOR",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "The investigation agent reaches a terminal NEEDS_REVIEW status for this claim -- two of the four critical structured-fact categories (benefit, servicing provider) are unresolved.",
+          "supporting_record_ids": [],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "agents.state.AgentResult",
+            "field_path": "status",
+            "comparator": "equals",
+            "expected_value": "NEEDS_REVIEW"
+          }
+        },
+        {
+          "finding_id": "f6",
+          "category": "DETERMINISTIC_SYSTEM_BEHAVIOR",
+          "classification": "DETERMINISTICALLY_CHECKABLE",
+          "statement": "AgentResult.missing_information is non-empty. This is a STRUCTURAL check only (list length > 0) -- it does not, on its own, confirm the list's entries are about the right things.",
+          "supporting_record_ids": [],
+          "supporting_policy_section_ids": [],
+          "deterministic_check": {
+            "source": "agents.state.AgentResult",
+            "field_path": "missing_information",
+            "comparator": "length_greater_than",
+            "expected_value": 0
+          }
+        },
+        {
+          "finding_id": "f7",
+          "category": "DETERMINISTIC_SYSTEM_BEHAVIOR",
+          "classification": "QUALITATIVE_HUMAN_REVIEW",
+          "statement": "Separately from f6's structural non-emptiness check: AgentResult.missing_information's entries substantively address the source-supported omissions this case actually has -- specifically (1) no benefit record for PLAN-BRONZE + SPECIALIST-VISIT and (2) no provider record for PRV-9999. Confirming this requires reading the list's actual content, not matching a keyword or exact string, and is listed here as its own qualitative finding rather than folded into f6's pass/fail.",
+          "supporting_record_ids": ["data/benefits.json", "data/providers.json"],
+          "supporting_policy_section_ids": []
+        },
+        {
+          "finding_id": "f8",
+          "category": "QUALITATIVE_HUMAN_JUDGMENT",
+          "classification": "QUALITATIVE_HUMAN_REVIEW",
+          "statement": "The brief does not guess or imply any specific denial reason, coverage outcome, or network status for this claim anywhere -- it states each absence as an absence and recommends escalation instead of resolving the case.",
+          "supporting_record_ids": [],
+          "supporting_policy_section_ids": ["CLM-5", "BEN-5"]
+        }
+      ],
+      "missing_information": [
+        "No claim-level denial_reason_code is recorded for CLM-1005.",
+        "No benefit record exists for plan_id=PLAN-BRONZE + service_code=SPECIALIST-VISIT in data/benefits.json.",
+        "No provider record exists for provider_id=PRV-9999 (this claim's own recorded servicing provider) in data/providers.json.",
+        "No prior-authorization record exists for member M-1005."
+      ],
+      "required_uncertainty_or_qualifications": [
+        "Whether SPECIALIST-VISIT is a covered benefit under PLAN-BRONZE at all is unknown -- the absence of a benefit record is not evidence of non-coverage (contrast CLM-1003, where a present record explicitly states covered=false).",
+        "Whether provider PRV-9999 is in-network, out-of-network, or does not exist as a real provider at all is unknown -- the absence of a directory record is not evidence of out-of-network status (contrast CLM-1004, where the provider record exists and explicitly states out-of-network).",
+        "The actual basis for this denial is unknown from the available synthetic data and must not be guessed from the service type or from patterns seen in other cases."
+      ],
+      "verification_or_human_review_actions": [
+        "Escalate to manual review to obtain or confirm the missing benefit record and servicing-provider identity before any explanation is given to the member (CLM-5, BEN-5).",
+        "Confirm the correct servicing-provider identity/ID directly, since PRV-9999 does not resolve to any record in the current provider directory."
+      ],
+      "unsupported_or_prohibited_conclusions": [
+        "Must not state or imply any specific denial reason (e.g., not covered, out-of-network, authorization required) since none is recorded and none can be derived.",
+        "Must not state PRV-9999 is out-of-network, unlicensed, or otherwise characterize it beyond 'not found in the available provider directory.'",
+        "Must not treat the missing benefit or provider records as a final coverage or network denial in either direction."
+      ],
+      "known_ambiguities_or_questions_for_human_review": [
+        "What the correct servicing-provider identity was, and whether PRV-9999 is a data-entry error or a provider genuinely absent from the directory.",
+        "Whether a benefit record for PLAN-BRONZE + SPECIALIST-VISIT should exist and was simply never created, versus this combination being intentionally excluded.",
+        "What the actual, intended denial reason was, given denial_reason_code was never populated."
+      ],
+      "reference_origin": "AI-drafted",
+      "review_status": "pending_human_review",
+      "schema_version": "golden_reference.v1",
+      "source_fingerprint": "data/claims.json@sha256:9a5d175938dc; data/benefits.json@sha256:77c7aa00eb54; data/providers.json@sha256:ad46bd1adb32; data/prior_authorizations.json@sha256:299fb6866c93; documents/claims_denial_guide.md@sha256:de5861231f53; documents/benefits_guide.md@sha256:75644b6399a9; documents/provider_network_policy.md@sha256:93d96557fe03; evals/agent_golden_set.json@sha256:34d85273ac73; evals/hybrid_retrieval_golden_set.json@sha256:a31f8e919aa5",
+      "review_notes": null
+    }
+  ]
+}

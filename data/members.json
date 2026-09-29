@@ -1,0 +1,42 @@
+[
+  {
+    "member_id": "M-1001",
+    "first_name": "Jordan",
+    "last_name": "Ellis",
+    "date_of_birth": "1985-03-14",
+    "plan_id": "PLAN-GOLD",
+    "status": "ACTIVE"
+  },
+  {
+    "member_id": "M-1002",
+    "first_name": "Casey",
+    "last_name": "Nguyen",
+    "date_of_birth": "1990-07-22",
+    "plan_id": "PLAN-GOLD",
+    "status": "ACTIVE"
+  },
+  {
+    "member_id": "M-1003",
+    "first_name": "Riley",
+    "last_name": "Thompson",
+    "date_of_birth": "1978-11-02",
+    "plan_id": "PLAN-SILVER",
+    "status": "ACTIVE"
+  },
+  {
+    "member_id": "M-1004",
+    "first_name": "Morgan",
+    "last_name": "Patel",
+    "date_of_birth": "1995-05-30",
+    "plan_id": "PLAN-GOLD",
+    "status": "ACTIVE"
+  },
+  {
+    "member_id": "M-1005",
+    "first_name": "Taylor",
+    "last_name": "Brooks",
+    "date_of_birth": "1982-09-09",
+    "plan_id": "PLAN-BRONZE",
+    "status": "ACTIVE"
+  }
+]

@@ -1,0 +1,72 @@
+[
+  {
+    "claim_id": "CLM-1001",
+    "member_id": "M-1001",
+    "plan_id": "PLAN-GOLD",
+    "service_code": "MRI-KNEE",
+    "provider_id": "PRV-1001",
+    "ordering_provider_id": "PRV-4001",
+    "date_of_service": "2026-02-10",
+    "status": "DENIED",
+    "billed_amount": 1800.00,
+    "allowed_amount": null,
+    "denial_reason_code": "AUTH_REQUIRED",
+    "denial_reason_description": "Prior authorization is required for this service and no approved authorization was found on file."
+  },
+  {
+    "claim_id": "CLM-1002",
+    "member_id": "M-1002",
+    "plan_id": "PLAN-GOLD",
+    "service_code": "MRI-KNEE",
+    "provider_id": "PRV-1001",
+    "ordering_provider_id": "PRV-4003",
+    "date_of_service": "2026-02-12",
+    "status": "PAID",
+    "billed_amount": 1800.00,
+    "allowed_amount": 1200.00,
+    "denial_reason_code": null,
+    "denial_reason_description": null
+  },
+  {
+    "claim_id": "CLM-1003",
+    "member_id": "M-1003",
+    "plan_id": "PLAN-SILVER",
+    "service_code": "LAB-BASIC",
+    "provider_id": "PRV-1002",
+    "ordering_provider_id": "PRV-4002",
+    "date_of_service": "2026-01-20",
+    "status": "DENIED",
+    "billed_amount": 150.00,
+    "allowed_amount": null,
+    "denial_reason_code": "SERVICE_NOT_COVERED",
+    "denial_reason_description": "This service is not a covered benefit under the member's plan."
+  },
+  {
+    "claim_id": "CLM-1004",
+    "member_id": "M-1004",
+    "plan_id": "PLAN-GOLD",
+    "service_code": "PT-INITIAL",
+    "provider_id": "PRV-2002",
+    "ordering_provider_id": "PRV-4002",
+    "date_of_service": "2026-03-01",
+    "status": "DENIED",
+    "billed_amount": 250.00,
+    "allowed_amount": null,
+    "denial_reason_code": "OUT_OF_NETWORK_PROVIDER",
+    "denial_reason_description": "Service was performed by a provider outside the plan's network."
+  },
+  {
+    "claim_id": "CLM-1005",
+    "member_id": "M-1005",
+    "plan_id": "PLAN-BRONZE",
+    "service_code": "SPECIALIST-VISIT",
+    "provider_id": "PRV-9999",
+    "ordering_provider_id": "PRV-4004",
+    "date_of_service": "2026-02-25",
+    "status": "DENIED",
+    "billed_amount": 300.00,
+    "allowed_amount": null,
+    "denial_reason_code": null,
+    "denial_reason_description": null
+  }
+]

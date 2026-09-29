@@ -1,0 +1,39 @@
+{
+  "claim_id": "CLM-BILL-9001",
+  "member_id": "MEM-BILL-01",
+  "records": [
+    {
+      "record_id": "BILLREC-001",
+      "record_type": "Operative note",
+      "record_date": "2026-06-01",
+      "author": "Dr. S. Whitfield",
+      "summary": "Operative note documents an open ligament repair of the LEFT knee, performed by Dr. S. Whitfield (PRV-BILL-ACTUAL).",
+      "supports_service_code": "SURG-KNEE-REPAIR",
+      "supports_modifier": "MOD-L",
+      "supports_units": null,
+      "supports_servicing_provider_id": "PRV-BILL-ACTUAL"
+    },
+    {
+      "record_id": "BILLREC-002",
+      "record_type": "Anesthesia and units log",
+      "record_date": "2026-06-01",
+      "author": "Riverside Ortho Clinic OR log",
+      "summary": "Anesthesia and OR log records exactly one operative session for this date of service, on the left knee only.",
+      "supports_service_code": null,
+      "supports_modifier": "MOD-L",
+      "supports_units": 1,
+      "supports_servicing_provider_id": null
+    },
+    {
+      "record_id": "BILLREC-003",
+      "record_type": "Provider roster confirmation",
+      "record_date": "2026-06-05",
+      "author": "Riverside Ortho Clinic credentialing office",
+      "summary": "Provider roster confirms Dr. S. Whitfield (PRV-BILL-ACTUAL) as the credentialed surgeon of record for this encounter; PRV-BILL-WRONG is a different clinician not involved in this surgery.",
+      "supports_service_code": null,
+      "supports_modifier": null,
+      "supports_units": null,
+      "supports_servicing_provider_id": "PRV-BILL-ACTUAL"
+    }
+  ]
+}

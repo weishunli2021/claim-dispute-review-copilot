@@ -1,0 +1,9 @@
+[
+  {
+    "claim_id": "CLM-1001",
+    "event_type": "claim_denial_decision",
+    "decided_at": "2026-02-11T12:00:00Z",
+    "is_synthetic": true,
+    "label": "SCENARIO-ONLY SYNTHETIC EVENT (Module 3 'Provider corrected after denial' demonstration). NOT read from data/claims.json -- CLM-1001's own recorded claim data has no denial-decision timestamp field at all, only date_of_service (2026-02-10). This invented timestamp (one day after that date of service) exists solely to give this demonstration's 'after denial' chronology narrative an actual, citable anchor to compare against the authorization-source amendment AUTHSRC-SCEN-A-2's amended_at (2026-02-20T09:00:00Z). It must never be presented as the claim's real, recorded denial-decision time, which remains genuinely unknown."
+  }
+]

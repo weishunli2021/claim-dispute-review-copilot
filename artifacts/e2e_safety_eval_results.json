@@ -1,0 +1,291 @@
+[
+  {
+    "scenario_id": "S01",
+    "description": "Generated brief cites a nonexistent evidence reference",
+    "passed": true,
+    "checks": [
+      {
+        "name": "generation_drafted",
+        "passed": true,
+        "observed": "DRAFTED",
+        "expected": "DRAFTED"
+      },
+      {
+        "name": "validation_failed",
+        "passed": true,
+        "observed": "FAILED",
+        "expected": "FAILED"
+      },
+      {
+        "name": "nonexistent_ref_reported",
+        "passed": true,
+        "observed": [
+          "findings[0].evidence_refs cites 'auth:DOES-NOT-EXIST-ANYWHERE', which does not exist in the evidence made available for this request."
+        ],
+        "expected": "an issue mentioning the nonexistent ref"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "S02",
+    "description": "Adapter/model response cannot be parsed into InvestigationBrief",
+    "passed": true,
+    "checks": [
+      {
+        "name": "evidence_status_still_sufficient",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "EVIDENCE_SUFFICIENT"
+      },
+      {
+        "name": "generation_failed",
+        "passed": true,
+        "observed": "FAILED",
+        "expected": "FAILED"
+      },
+      {
+        "name": "failure_category_structured_parsing",
+        "passed": true,
+        "observed": "STRUCTURED_PARSING",
+        "expected": "STRUCTURED_PARSING"
+      },
+      {
+        "name": "validation_not_run",
+        "passed": true,
+        "observed": "NOT_RUN",
+        "expected": "NOT_RUN"
+      },
+      {
+        "name": "no_fabricated_brief",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "one_adapter_call",
+        "passed": true,
+        "observed": 1,
+        "expected": 1
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "S03",
+    "description": "Generated output attempts an action outside the advisory allowlist",
+    "passed": true,
+    "checks": [
+      {
+        "name": "validation_failed",
+        "passed": true,
+        "observed": "FAILED",
+        "expected": "FAILED"
+      },
+      {
+        "name": "allowlist_rule_reported",
+        "passed": true,
+        "observed": [
+          "advisory_action_allowlist"
+        ],
+        "expected": "advisory_action_allowlist"
+      }
+    ],
+    "notes": "ActionCode's own closed enum already makes an out-of-allowlist action unrepresentable in a parsed brief; this test verifies Rule C's independent enforcement layer, not merely the schema."
+  },
+  {
+    "scenario_id": "S04",
+    "description": "Simulated provider/API failure",
+    "passed": true,
+    "checks": [
+      {
+        "name": "evidence_status_truthful",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "EVIDENCE_SUFFICIENT"
+      },
+      {
+        "name": "generation_failed",
+        "passed": true,
+        "observed": "FAILED",
+        "expected": "FAILED"
+      },
+      {
+        "name": "failure_category_provider",
+        "passed": true,
+        "observed": "PROVIDER",
+        "expected": "PROVIDER"
+      },
+      {
+        "name": "validation_not_run",
+        "passed": true,
+        "observed": "NOT_RUN",
+        "expected": "NOT_RUN"
+      },
+      {
+        "name": "at_most_one_adapter_call",
+        "passed": true,
+        "observed": 1,
+        "expected": "<= 1"
+      },
+      {
+        "name": "no_fabricated_brief",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "S05",
+    "description": "Simulated provider timeout",
+    "passed": true,
+    "checks": [
+      {
+        "name": "generation_failed",
+        "passed": true,
+        "observed": "FAILED",
+        "expected": "FAILED"
+      },
+      {
+        "name": "failure_category_timeout",
+        "passed": true,
+        "observed": "TIMEOUT",
+        "expected": "TIMEOUT"
+      },
+      {
+        "name": "validation_not_run",
+        "passed": true,
+        "observed": "NOT_RUN",
+        "expected": "NOT_RUN"
+      },
+      {
+        "name": "no_retry_exactly_one_call",
+        "passed": true,
+        "observed": 1,
+        "expected": 1
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "S06",
+    "description": "Model configured to override NEEDS_REVIEW is never consulted -- the evidence gate is authoritative",
+    "passed": true,
+    "checks": [
+      {
+        "name": "evidence_status_needs_review",
+        "passed": true,
+        "observed": "NEEDS_REVIEW",
+        "expected": "NEEDS_REVIEW"
+      },
+      {
+        "name": "zero_model_calls_despite_available_response",
+        "passed": true,
+        "observed": 0,
+        "expected": 0
+      },
+      {
+        "name": "generation_not_attempted",
+        "passed": true,
+        "observed": "NOT_ATTEMPTED",
+        "expected": "NOT_ATTEMPTED"
+      },
+      {
+        "name": "would_be_brief_never_surfaced",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "S07",
+    "description": "Instruction-like text embedded in retrieved evidence is treated as data, not a command",
+    "passed": true,
+    "checks": [
+      {
+        "name": "injection_text_present_in_fixture_only",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "defense_instruction_present_in_system_prompt",
+        "passed": true,
+        "observed": true,
+        "expected": true
+      },
+      {
+        "name": "routing_unaffected_by_injected_text",
+        "passed": true,
+        "observed": "EVIDENCE_SUFFICIENT",
+        "expected": "EVIDENCE_SUFFICIENT"
+      },
+      {
+        "name": "conforming_result_produces_no_prohibited_action",
+        "passed": true,
+        "observed": "EXPLAIN_RECORDED_STATUS",
+        "expected": "EXPLAIN_RECORDED_STATUS (the mocked, non-compliant-with-injection response)"
+      },
+      {
+        "name": "compliance_with_injection_still_fails_h2_validation",
+        "passed": true,
+        "observed": "FAILED",
+        "expected": "FAILED"
+      }
+    ],
+    "notes": "Does NOT prove comprehensive prompt-injection resistance -- no live model call was made against the injected fixture. Establishes only: (a) agent routing/status is structurally independent of evidence text content, (b) the system prompt instructs the model to treat retrieved text as evidence only, and (c) IF a model complied with an injected instruction and produced a prohibited authority statement, H2's deterministic Rule D would still reject it."
+  },
+  {
+    "scenario_id": "S08",
+    "description": "Changing the selected claim or the scoped question clears stale UI state",
+    "passed": true,
+    "checks": [
+      {
+        "name": "changing_claim_clears_result",
+        "passed": true,
+        "observed": false,
+        "expected": false
+      },
+      {
+        "name": "changing_question_clears_result",
+        "passed": true,
+        "observed": false,
+        "expected": false
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "scenario_id": "S09",
+    "description": "No-match vs. execution/tool failure: both map to AgentStatus.ERROR today (documented limitation)",
+    "passed": true,
+    "checks": [
+      {
+        "name": "not_found_case_is_error_status",
+        "passed": true,
+        "observed": "ERROR",
+        "expected": "ERROR"
+      },
+      {
+        "name": "simulated_failure_case_is_also_error_status",
+        "passed": true,
+        "observed": "ERROR",
+        "expected": "ERROR"
+      },
+      {
+        "name": "distinguishable_only_by_message_text_not_status",
+        "passed": true,
+        "observed": {
+          "not_found_message": "No matching claim was found for claim_id 'CLM-9999'.",
+          "failure_message": "investigate_claim skill raised an unhandled exception: simulated deterministic-tool failure (evaluation-only)"
+        },
+        "expected": "both ERROR status; different .error message text (the only current distinguishing signal)"
+      }
+    ],
+    "notes": "LIMITATION: the current contracts do not expose a status-level distinction between 'legitimate not-found' and 'unexpected execution/tool failure' -- both surface as AgentStatus.ERROR, distinguishable only by the free-text .error message. Documented here rather than redesigned, per H4 scope (would require an AgentStatus change, which is a frozen evidence-architecture concern)."
+  }
+]

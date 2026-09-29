@@ -1,0 +1,136 @@
+[
+  {
+    "case_id": "case1_denial_investigation",
+    "claim_id": "CLM-1001",
+    "query": "My claim was denied. What's wrong with it?",
+    "expected_structured_facts": {
+      "claim_status": "DENIED",
+      "denial_reason_code": "AUTH_REQUIRED",
+      "benefit_present": true,
+      "benefit_covered": true,
+      "benefit_requires_prior_auth": true,
+      "prior_authorizations_count": 0,
+      "servicing_provider_present": true,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["IMG-2", "PA-4", "CLM-2"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1001", "relation": "BELONGS_TO", "target": "member:M-1001"},
+      {"source": "claim:CLM-1001", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"},
+      {"source": "claim:CLM-1001", "relation": "SERVICED_BY", "target": "provider:PRV-1001"},
+      {"source": "claim:CLM-1001", "relation": "ORDERED_BY", "target": "provider:PRV-4001"},
+      {"source": "member:M-1001", "relation": "ENROLLED_IN", "target": "plan:PLAN-GOLD"},
+      {"source": "plan:PLAN-GOLD", "relation": "HAS_BENEFIT", "target": "benefit:BEN-GOLD-MRI-KNEE"}
+    ],
+    "expected_missing_evidence_categories": ["prior_authorization"],
+    "forbidden_nodes": ["claim:CLM-1002", "member:M-1002", "authorization:PA-1501", "authorization:PA-2001"],
+    "rationale": "Source of truth: data/claims.json (CLM-1001: DENIED/AUTH_REQUIRED, member M-1001, service MRI-KNEE, servicing PRV-1001, ordering PRV-4001); data/benefits.json (BEN-GOLD-MRI-KNEE: covered=true, requires_prior_auth=true); data/prior_authorizations.json (no record for M-1002... i.e. no record with member_id=M-1001, confirming zero matching authorizations). Policy sections chosen by reading documents/imaging_policy.md (IMG-2 directly states MRI needs prior auth), documents/prior_authorization_policy.md (PA-4 defines the AUTH_REQUIRED code), and documents/claims_denial_guide.md (CLM-2 is the denial-guide's own AUTH_REQUIRED entry) -- not by running the retriever."
+  },
+  {
+    "case_id": "case2_two_authorizations",
+    "claim_id": "CLM-1002",
+    "query": "Is there an approved authorization on file for this MRI?",
+    "expected_structured_facts": {
+      "claim_status": "PAID",
+      "denial_reason_code": null,
+      "benefit_present": true,
+      "benefit_covered": true,
+      "benefit_requires_prior_auth": true,
+      "prior_authorizations_count": 2,
+      "servicing_provider_present": true,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["IMG-2", "PA-3"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1002", "relation": "BELONGS_TO", "target": "member:M-1002"},
+      {"source": "claim:CLM-1002", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"},
+      {"source": "member:M-1002", "relation": "HAS_AUTHORIZATION", "target": "authorization:PA-1501"},
+      {"source": "member:M-1002", "relation": "HAS_AUTHORIZATION", "target": "authorization:PA-2001"},
+      {"source": "authorization:PA-1501", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"},
+      {"source": "authorization:PA-2001", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"}
+    ],
+    "expected_missing_evidence_categories": [],
+    "forbidden_nodes": ["claim:CLM-1001", "member:M-1001"],
+    "rationale": "Source of truth: data/prior_authorizations.json has exactly two records for member_id=M-1002 + service_code=MRI-KNEE -- PA-1501 (EXPIRED, 2025 window) and PA-2001 (APPROVED, 2026 window covering the claim's 2026-02-12 date of service). Both are expected as graph evidence (HAS_AUTHORIZATION x2), per the domain intent that a member's authorization HISTORY is visible, not just whichever record happens to be currently applicable -- that judgment belongs to a future reasoning layer, not this evidence layer. Policy sections: IMG-2 (MRI prior-auth requirement) and PA-3 (effective/expiration window concept, directly relevant to why two differently-dated records for the same member/service matter) chosen from reading the documents directly."
+  },
+  {
+    "case_id": "case3_authoritative_not_covered",
+    "claim_id": "CLM-1003",
+    "query": "Why was my lab claim denied?",
+    "expected_structured_facts": {
+      "claim_status": "DENIED",
+      "denial_reason_code": "SERVICE_NOT_COVERED",
+      "benefit_present": true,
+      "benefit_covered": false,
+      "benefit_requires_prior_auth": false,
+      "prior_authorizations_count": 0,
+      "servicing_provider_present": true,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["BEN-3", "CLM-3"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1003", "relation": "BELONGS_TO", "target": "member:M-1003"},
+      {"source": "claim:CLM-1003", "relation": "FOR_SERVICE", "target": "service:LAB-BASIC"},
+      {"source": "member:M-1003", "relation": "ENROLLED_IN", "target": "plan:PLAN-SILVER"},
+      {"source": "plan:PLAN-SILVER", "relation": "HAS_BENEFIT", "target": "benefit:BEN-SILVER-LAB-BASIC"}
+    ],
+    "expected_missing_evidence_categories": ["prior_authorization"],
+    "forbidden_nodes": ["claim:CLM-1001", "claim:CLM-1002", "member:M-1001", "member:M-1002"],
+    "rationale": "Source of truth: data/benefits.json has an explicit BEN-SILVER-LAB-BASIC record with covered=false -- this is an AUTHORITATIVE, PRESENT benefit determination, not an absence of data. benefit_present MUST be true here (deliberately distinct from Case 5, where no benefit record exists at all) -- 'benefit_present=true, benefit_covered=false' must never be collapsed into a 'benefit missing' classification. Policy sections BEN-3 (states LAB-BASIC is not covered under Silver) and CLM-3 (defines SERVICE_NOT_COVERED) chosen by reading documents/benefits_guide.md and documents/claims_denial_guide.md directly. prior_authorization is still expected as missing evidence: no PA record exists for M-1003 in data/prior_authorizations.json, and that absence is reported regardless of whether prior auth was ever relevant to this service (LAB-BASIC never requires it) -- the absence is a fact about retrieval, not a judgment about relevance."
+  },
+  {
+    "case_id": "case4_out_of_network",
+    "claim_id": "CLM-1004",
+    "query": "Why was my physical therapy claim denied?",
+    "expected_structured_facts": {
+      "claim_status": "DENIED",
+      "denial_reason_code": "OUT_OF_NETWORK_PROVIDER",
+      "benefit_present": true,
+      "benefit_covered": true,
+      "benefit_requires_prior_auth": false,
+      "prior_authorizations_count": 0,
+      "servicing_provider_present": true,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["CLM-4", "NET-3"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1004", "relation": "BELONGS_TO", "target": "member:M-1004"},
+      {"source": "claim:CLM-1004", "relation": "SERVICED_BY", "target": "provider:PRV-2002"},
+      {"source": "claim:CLM-1004", "relation": "ORDERED_BY", "target": "provider:PRV-4002"},
+      {"source": "plan:PLAN-GOLD", "relation": "HAS_BENEFIT", "target": "benefit:BEN-GOLD-PT-INITIAL"},
+      {"source": "provider:PRV-4002", "relation": "PARTICIPATES_IN", "target": "network:meridian-silver-network"}
+    ],
+    "forbidden_relationship_patterns": [
+      {"source": "provider:PRV-2002", "relation": "PARTICIPATES_IN"}
+    ],
+    "expected_missing_evidence_categories": ["prior_authorization"],
+    "forbidden_nodes": ["claim:CLM-1001", "claim:CLM-1002", "claim:CLM-1003"],
+    "rationale": "Source of truth: data/providers.json shows PRV-2002 (Sunrise Physical Therapy Group) as network_status=out-of-network with network_name=null -- it must be present as a Provider node (the claim really was serviced there) but must structurally have NO PARTICIPATES_IN edge, since it has no home network to participate in; this is the 'provider/network evidence reflects the out-of-network scenario' requirement, expressed as a forbidden relationship pattern rather than a positive expectation. The ordering provider PRV-4002 (Dr. Sam Rivera) IS on Meridian Silver Network per providers.json and should show that edge. Policy sections CLM-4 (defines OUT_OF_NETWORK_PROVIDER) and NET-3 (explains out-of-network consequences) chosen from documents/claims_denial_guide.md and documents/provider_network_policy.md directly."
+  },
+  {
+    "case_id": "case5_incomplete_not_invented",
+    "claim_id": "CLM-1005",
+    "query": "Why was my specialist visit claim denied?",
+    "expected_structured_facts": {
+      "claim_status": "DENIED",
+      "denial_reason_code": null,
+      "benefit_present": false,
+      "prior_authorizations_count": 0,
+      "servicing_provider_present": false,
+      "ordering_provider_present": true
+    },
+    "expected_policy_sections": ["CLM-5", "BEN-5"],
+    "expected_graph_relationships": [
+      {"source": "claim:CLM-1005", "relation": "BELONGS_TO", "target": "member:M-1005"},
+      {"source": "claim:CLM-1005", "relation": "FOR_SERVICE", "target": "service:SPECIALIST-VISIT"},
+      {"source": "claim:CLM-1005", "relation": "ORDERED_BY", "target": "provider:PRV-4004"},
+      {"source": "member:M-1005", "relation": "ENROLLED_IN", "target": "plan:PLAN-BRONZE"}
+    ],
+    "forbidden_relationship_patterns": [
+      {"source": "claim:CLM-1005", "relation": "SERVICED_BY"}
+    ],
+    "expected_missing_evidence_categories": ["benefit", "servicing_provider", "prior_authorization"],
+    "forbidden_nodes": ["provider:PRV-9999", "claim:CLM-1001", "claim:CLM-1002"],
+    "rationale": "Source of truth: data/claims.json has denial_reason_code=null for CLM-1005 (must not be invented as any specific code); data/benefits.json has no record at all for plan_id=PLAN-BRONZE + service_code=SPECIALIST-VISIT (benefit_present=false, a genuine absence, unlike Case 3); data/providers.json has no record with provider_id=PRV-9999, the claim's own servicing provider_id -- that id must never appear anywhere in the graph, and no SERVICED_BY edge may exist for this claim at all (not even to a placeholder). Policy sections CLM-5 (Claims With Incomplete Information) and BEN-5 (When Benefit Information Is Missing) chosen because both documents directly describe this exact scenario -- missing rule, escalate, never assume -- read from documents/claims_denial_guide.md and documents/benefits_guide.md directly."
+  }
+]

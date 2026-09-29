@@ -1,0 +1,102 @@
+[
+  {
+    "query_id": "claim1_core_relationships",
+    "description": "Claim 1's member/plan/service relationships.",
+    "root_type": "claim",
+    "root_id": "CLM-1001",
+    "expected_nodes": ["claim:CLM-1001", "member:M-1001", "plan:PLAN-GOLD", "service:MRI-KNEE"],
+    "expected_relationships": [
+      {"source": "claim:CLM-1001", "relation": "BELONGS_TO", "target": "member:M-1001"},
+      {"source": "claim:CLM-1001", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"},
+      {"source": "member:M-1001", "relation": "ENROLLED_IN", "target": "plan:PLAN-GOLD"}
+    ]
+  },
+  {
+    "query_id": "claim1_providers",
+    "description": "Claim 1's servicing and ordering providers.",
+    "root_type": "claim",
+    "root_id": "CLM-1001",
+    "expected_nodes": ["claim:CLM-1001", "provider:PRV-1001", "provider:PRV-4001"],
+    "expected_relationships": [
+      {"source": "claim:CLM-1001", "relation": "SERVICED_BY", "target": "provider:PRV-1001"},
+      {"source": "claim:CLM-1001", "relation": "ORDERED_BY", "target": "provider:PRV-4001"}
+    ]
+  },
+  {
+    "query_id": "member1_plan_benefit_service",
+    "description": "Plan-to-benefit-to-service, using a service (PT-INITIAL) that is NOT the member's own claim's service, so this can only be reached via the Plan->Benefit->Service path, not a Member<-Claim->Service shortcut.",
+    "root_type": "member",
+    "root_id": "M-1001",
+    "expected_nodes": ["plan:PLAN-GOLD", "benefit:BEN-GOLD-PT-INITIAL", "service:PT-INITIAL"],
+    "expected_relationships": [
+      {"source": "member:M-1001", "relation": "ENROLLED_IN", "target": "plan:PLAN-GOLD"},
+      {"source": "plan:PLAN-GOLD", "relation": "HAS_BENEFIT", "target": "benefit:BEN-GOLD-PT-INITIAL"},
+      {"source": "benefit:BEN-GOLD-PT-INITIAL", "relation": "FOR_SERVICE", "target": "service:PT-INITIAL"}
+    ]
+  },
+  {
+    "query_id": "member1_plan_network",
+    "description": "Plan-to-network relationship.",
+    "root_type": "member",
+    "root_id": "M-1001",
+    "expected_nodes": ["plan:PLAN-GOLD", "network:meridian-preferred-network"],
+    "expected_relationships": [
+      {"source": "member:M-1001", "relation": "ENROLLED_IN", "target": "plan:PLAN-GOLD"},
+      {"source": "plan:PLAN-GOLD", "relation": "USES_NETWORK", "target": "network:meridian-preferred-network"}
+    ]
+  },
+  {
+    "query_id": "member2_two_authorizations",
+    "description": "Case 2's two prior-authorization records for the same member/service over time.",
+    "root_type": "member",
+    "root_id": "M-1002",
+    "expected_nodes": ["authorization:PA-1501", "authorization:PA-2001"],
+    "expected_relationships": [
+      {"source": "member:M-1002", "relation": "HAS_AUTHORIZATION", "target": "authorization:PA-1501"},
+      {"source": "member:M-1002", "relation": "HAS_AUTHORIZATION", "target": "authorization:PA-2001"}
+    ]
+  },
+  {
+    "query_id": "member2_authorization_service",
+    "description": "Authorization-to-service relationships for both of Case 2's authorization records.",
+    "root_type": "member",
+    "root_id": "M-1002",
+    "expected_nodes": ["authorization:PA-2001", "authorization:PA-1501", "service:MRI-KNEE"],
+    "expected_relationships": [
+      {"source": "authorization:PA-2001", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"},
+      {"source": "authorization:PA-1501", "relation": "FOR_SERVICE", "target": "service:MRI-KNEE"}
+    ]
+  },
+  {
+    "query_id": "claim3_not_covered_benefit",
+    "description": "Claim 3 (Silver plan, LAB-BASIC not covered) member/plan/service relationships.",
+    "root_type": "claim",
+    "root_id": "CLM-1003",
+    "expected_nodes": ["service:LAB-BASIC", "member:M-1003", "plan:PLAN-SILVER"],
+    "expected_relationships": [
+      {"source": "claim:CLM-1003", "relation": "FOR_SERVICE", "target": "service:LAB-BASIC"},
+      {"source": "claim:CLM-1003", "relation": "BELONGS_TO", "target": "member:M-1003"},
+      {"source": "member:M-1003", "relation": "ENROLLED_IN", "target": "plan:PLAN-SILVER"}
+    ]
+  },
+  {
+    "query_id": "claim4_out_of_network_provider",
+    "description": "Case 4's out-of-network servicing provider is represented and reachable.",
+    "root_type": "claim",
+    "root_id": "CLM-1004",
+    "expected_nodes": ["provider:PRV-2002"],
+    "expected_relationships": [
+      {"source": "claim:CLM-1004", "relation": "SERVICED_BY", "target": "provider:PRV-2002"}
+    ]
+  },
+  {
+    "query_id": "claim5_incomplete_data",
+    "description": "Case 5's ordering provider (PRV-4004) IS resolvable and reachable, even though its servicing provider_id (PRV-9999) is dangling and deliberately absent from the graph. See tests/test_graph_builder.py for the explicit assertion that no node is invented for PRV-9999.",
+    "root_type": "claim",
+    "root_id": "CLM-1005",
+    "expected_nodes": ["claim:CLM-1005", "provider:PRV-4004"],
+    "expected_relationships": [
+      {"source": "claim:CLM-1005", "relation": "ORDERED_BY", "target": "provider:PRV-4004"}
+    ]
+  }
+]
