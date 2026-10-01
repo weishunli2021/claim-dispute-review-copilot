@@ -1,14 +1,24 @@
 {
-  "plan_id": "PLN-BILL-01",
-  "plan_network_name": "Synthetic Choice Network",
+  "plans": [
+    {
+      "plan_id": "PLN-BILL-01",
+      "plan_name": "Synthetic Choice PPO 500",
+      "plan_network_name": "Synthetic Choice Network"
+    },
+    {
+      "plan_id": "PLN-BILL-02",
+      "plan_name": "Sunrise Alliance HMO 200",
+      "plan_network_name": "Sunrise Alliance Network"
+    }
+  ],
   "providers": [
     {
-      "provider_id": "PRV-BILL-ACTUAL",
+      "provider_id": "PRV-BILL-SYNTHETICCHOICEPPO500",
       "name": "Dr. S. Whitfield",
       "network_name": "Synthetic Choice Network"
     },
     {
-      "provider_id": "PRV-BILL-WRONG",
+      "provider_id": "PRV-BILL-SUNRISEHMO200",
       "name": "Dr. A. Kowalski",
       "network_name": "Sunrise Alliance Network"
     }

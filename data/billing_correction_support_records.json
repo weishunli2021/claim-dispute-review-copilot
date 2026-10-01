@@ -7,11 +7,11 @@
       "record_type": "Operative note",
       "record_date": "2026-06-01",
       "author": "Dr. S. Whitfield",
-      "summary": "Operative note documents an open ligament repair of the LEFT knee, performed by Dr. S. Whitfield (PRV-BILL-ACTUAL).",
+      "summary": "Operative note documents an open ligament repair of the LEFT knee, performed by Dr. S. Whitfield (PRV-BILL-SYNTHETICCHOICEPPO500).",
       "supports_service_code": "SURG-KNEE-REPAIR",
       "supports_modifier": "MOD-L",
       "supports_units": null,
-      "supports_servicing_provider_id": "PRV-BILL-ACTUAL"
+      "supports_servicing_provider_id": "PRV-BILL-SYNTHETICCHOICEPPO500"
     },
     {
       "record_id": "BILLREC-002",
@@ -29,11 +29,11 @@
       "record_type": "Provider roster confirmation",
       "record_date": "2026-06-05",
       "author": "Riverside Ortho Clinic credentialing office",
-      "summary": "Provider roster confirms Dr. S. Whitfield (PRV-BILL-ACTUAL) as the credentialed surgeon of record for this encounter; PRV-BILL-WRONG is a different clinician not involved in this surgery.",
+      "summary": "Provider roster confirms Dr. S. Whitfield (PRV-BILL-SYNTHETICCHOICEPPO500) as the credentialed surgeon of record for this encounter; PRV-BILL-SUNRISEHMO200 is a different clinician not involved in this surgery.",
       "supports_service_code": null,
       "supports_modifier": null,
       "supports_units": null,
-      "supports_servicing_provider_id": "PRV-BILL-ACTUAL"
+      "supports_servicing_provider_id": "PRV-BILL-SYNTHETICCHOICEPPO500"
     }
   ]
 }

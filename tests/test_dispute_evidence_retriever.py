@@ -70,17 +70,17 @@ def test_gather_policy_evidence_query_reflects_conflicting_fields():
 
 
 def test_gather_network_evidence_checks_original_and_proposed_providers():
-    result = gather_network_evidence("PRV-BILL-WRONG", "PRV-BILL-ACTUAL")
+    result = gather_network_evidence("PRV-BILL-SUNRISEHMO200", "PRV-BILL-SYNTHETICCHOICEPPO500")
     ref_ids = {ref.ref_id for ref in result.references}
-    assert ref_ids == {"network:PRV-BILL-WRONG", "network:PRV-BILL-ACTUAL"}
+    assert ref_ids == {"network:PRV-BILL-SUNRISEHMO200", "network:PRV-BILL-SYNTHETICCHOICEPPO500"}
     assert all(ref.provenance == Provenance.INDEPENDENT_PROVIDER_NETWORK_RELATIONSHIP for ref in result.references)
     detail_by_id = {ref.ref_id: ref.detail for ref in result.references}
-    assert "True" in detail_by_id["network:PRV-BILL-ACTUAL"]
-    assert "False" in detail_by_id["network:PRV-BILL-WRONG"]
+    assert "True" in detail_by_id["network:PRV-BILL-SYNTHETICCHOICEPPO500"]
+    assert "False" in detail_by_id["network:PRV-BILL-SUNRISEHMO200"]
 
 
 def test_gather_network_evidence_deduplicates_identical_provider_ids():
-    result = gather_network_evidence("PRV-BILL-ACTUAL", "PRV-BILL-ACTUAL")
+    result = gather_network_evidence("PRV-BILL-SYNTHETICCHOICEPPO500", "PRV-BILL-SYNTHETICCHOICEPPO500")
     assert len(result.references) == 1
 
 

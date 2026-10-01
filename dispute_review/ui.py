@@ -66,6 +66,7 @@ from dispute_review.billing_fixtures import (
     get_billing_claim_record,
     get_billing_support_records,
 )
+from dispute_review.billing_graph import DEFAULT_PLAN_ID, get_billing_network_fixture
 from dispute_review.comparison import (
     build_billing_claim_snapshot,
     check_claim_member_linkage,
@@ -95,6 +96,23 @@ PROPOSED_AMOUNT_KEY = f"{_PREFIX}proposed_billed_amount"
 EXPLANATION_KEY = f"{_PREFIX}correction_explanation"
 SUPPORTING_REFS_KEY = f"{_PREFIX}supporting_record_references"
 
+# NOT a submitted field -- a demo-only lever controlling which plan's
+# required network the provider-network graph search (Section 3) compares
+# against. This is the ONE canonical value; it is shown by TWO synced
+# widgets -- a selectbox in Section 1 (NETWORK_PLAN_SECTION1_KEY, next to
+# the claim identification table it replaces the static "Plan" row in) and
+# one in Section 2 (_render_correction_submission_section, next to Load/
+# Clear) -- kept in sync by render_dispute_review_tab forcing
+# NETWORK_PLAN_SECTION1_KEY to match this key at the top of every render.
+# Never changes the claim's own recorded plan_id/plan_name fixture data.
+NETWORK_CHECK_PLAN_KEY = f"{_PREFIX}network_check_plan_id"
+
+# Section 1's own widget key for the same canonical value above -- a
+# SEPARATE Streamlit widget key is required (Streamlit forbids two
+# widgets sharing one key); kept in sync with NETWORK_CHECK_PLAN_KEY, see
+# that constant's own comment for exactly how.
+NETWORK_PLAN_SECTION1_KEY = f"{_PREFIX}network_plan_section1"
+
 RESULT_KEY = f"{_PREFIX}result"
 RESULT_FINGERPRINT_KEY = f"{_PREFIX}result_fingerprint"
 VALIDATION_ERRORS_KEY = f"{_PREFIX}validation_errors"
@@ -118,6 +136,7 @@ INPUT_KEYS: list[str] = [
     PROPOSED_AMOUNT_KEY,
     EXPLANATION_KEY,
     SUPPORTING_REFS_KEY,
+    NETWORK_CHECK_PLAN_KEY,
 ]
 
 NOT_PROVIDED_LABEL = "Not provided"
@@ -188,6 +207,8 @@ def ensure_initialized(state: MutableMapping) -> None:
     for key, default in _default_widget_values().items():
         if key not in state:
             state[key] = default
+    if NETWORK_CHECK_PLAN_KEY not in state:
+        state[NETWORK_CHECK_PLAN_KEY] = DEFAULT_PLAN_ID
     for key in (
         RESULT_KEY,
         RESULT_FINGERPRINT_KEY,
@@ -252,9 +273,11 @@ def apply_example(state: MutableMapping) -> None:
 
 def reset_inputs(state: MutableMapping) -> None:
     """The 'Clear / reset' action: restore every dispute-review widget to
-    its blank default and clear any stale result."""
+    its blank default (and the network-check plan to the claim's own
+    recorded plan) and clear any stale result."""
     for key, value in _default_widget_values().items():
         state[key] = value
+    state[NETWORK_CHECK_PLAN_KEY] = DEFAULT_PLAN_ID
     clear_result(state)
 
 
@@ -367,11 +390,16 @@ def run_investigation(state: MutableMapping, claim: BillingClaimSnapshot, submis
     """Handle the 'Investigate' action: invoke the bounded dispute-review
     AI workflow EXACTLY ONCE, using the CURRENT validated submission and
     CLM-BILL-9001. Calls application.dispute_workflow.run_dispute_workflow
-    directly -- no workflow/gate/validation logic is reimplemented here."""
+    directly -- no workflow/gate/validation logic is reimplemented here.
+    Passes the current "Network plan" selection (defaults to this
+    claim's own recorded plan) straight through -- see
+    NETWORK_CHECK_PLAN_KEY's own comment for what it does and does not
+    change."""
     clear_judge(state)
     state[WORKFLOW_RESULT_KEY] = None
     state[WORKFLOW_FINGERPRINT_KEY] = None
-    result = run_dispute_workflow(claim.claim_id, submission)
+    plan_id = state.get(NETWORK_CHECK_PLAN_KEY) or DEFAULT_PLAN_ID
+    result = run_dispute_workflow(claim.claim_id, submission, plan_id=plan_id)
     state[WORKFLOW_RESULT_KEY] = result
     state[WORKFLOW_FINGERPRINT_KEY] = _current_fingerprint(state, claim)
 
@@ -446,10 +474,32 @@ def _fmt_derived_amount(units: Optional[int], charge_per_unit: Optional[float]) 
     return f"${units * charge_per_unit:,.2f}"
 
 
-def _render_original_claim_section(claim: BillingClaimSnapshot) -> None:
+def _plan_options_and_labels() -> tuple[list[str], dict[str, str]]:
+    """The isolated network fixture's plans, as (ordered plan_ids,
+    {plan_id: display label}) -- shared by both of the two synced plan
+    selectboxes (Section 1 and Section 2) so their option lists/labels can
+    never drift apart."""
+    plans = get_billing_network_fixture().plans
+    label_by_id = {
+        plan.plan_id: (
+            f"{plan.plan_id} — {plan.plan_name} (requires: {plan.plan_network_name})"
+            + (" — this claim's recorded plan" if plan.plan_id == DEFAULT_PLAN_ID else "")
+        )
+        for plan in plans
+    }
+    return [plan.plan_id for plan in plans], label_by_id
+
+
+def _render_original_claim_section(state: MutableMapping, claim: BillingClaimSnapshot) -> None:
     """Section 1: a detailed, read-only snapshot of the original claim and
     its recorded decision. Every value here is read directly from the
-    isolated fixture -- this function never invents a missing value."""
+    isolated fixture -- this function never invents a missing value. The
+    ONE exception is the "Plan" selectbox below, a deliberate exception to
+    "read-only": it shows/edits NETWORK_CHECK_PLAN_KEY, the same demo-only
+    network-check lever as Section 2's "Network plan" control (synced, see
+    that key's own comment) -- it never edits the claim's own recorded
+    plan_id/plan_name fixture data, only which plan's network the graph
+    search in Section 3 compares against."""
     st.subheader("1. Original Claim & Recorded Decision")
     st.caption(
         "SYNTHETIC SCENARIO — this claim, its service codes, and its modifiers are entirely "
@@ -463,7 +513,6 @@ def _render_original_claim_section(claim: BillingClaimSnapshot) -> None:
         {"Field": "Claim type", "Value": claim.claim_type},
         {"Field": "Submission date", "Value": _fmt(claim.submission_date)},
         {"Field": "Member", "Value": f"{claim.member_id} — {_fmt(claim.member_name)}"},
-        {"Field": "Plan", "Value": f"{_fmt(claim.plan_id)} — {_fmt(claim.plan_name)}"},
         {
             "Field": "Billing provider",
             "Value": f"{_fmt(claim.billing_provider_id)} — {_fmt(claim.billing_provider_name)}",
@@ -481,6 +530,20 @@ def _render_original_claim_section(claim: BillingClaimSnapshot) -> None:
             }
         )
     st.dataframe(identification_rows, hide_index=True, width="stretch")
+    st.caption(f"Claim's own recorded plan (fixed): **{_fmt(claim.plan_id)} — {_fmt(claim.plan_name)}**")
+
+    def _on_plan_change() -> None:
+        state[NETWORK_CHECK_PLAN_KEY] = state[NETWORK_PLAN_SECTION1_KEY]
+        clear_result(state)
+
+    plan_ids, plan_label_by_id = _plan_options_and_labels()
+    st.selectbox(
+        "Plan",
+        options=plan_ids,
+        format_func=lambda pid: plan_label_by_id.get(pid, pid),
+        key=NETWORK_PLAN_SECTION1_KEY,
+        on_change=_on_plan_change,
+    )
 
     st.markdown("**Fields under investigation** (the four billing fields this scenario checks)")
     investigated_rows = [
@@ -561,12 +624,20 @@ def _render_correction_submission_section(state: MutableMapping) -> None:
         "judge result once the edit is committed."
     )
 
-    col_a, col_b = st.columns(2)
-    col_a.button("Load billing correction example", key=f"{_PREFIX}load_example_btn", on_click=apply_example, args=(state,))
-    col_b.button("Clear / reset", key=f"{_PREFIX}reset_btn", on_click=reset_inputs, args=(state,))
-
     def _on_change() -> None:
         clear_result(state)
+
+    col_a, col_b, col_c = st.columns(3)
+    col_a.button("Load billing correction example", key=f"{_PREFIX}load_example_btn", on_click=apply_example, args=(state,))
+    col_b.button("Clear / reset", key=f"{_PREFIX}reset_btn", on_click=reset_inputs, args=(state,))
+    plan_ids, plan_label_by_id = _plan_options_and_labels()
+    col_c.selectbox(
+        "Network plan",
+        options=plan_ids,
+        format_func=lambda pid: plan_label_by_id.get(pid, pid),
+        key=NETWORK_CHECK_PLAN_KEY,
+        on_change=_on_change,
+    )
 
     col1, col2 = st.columns(2)
     col1.text_input("Supplied by", key=SUPPLIED_BY_KEY, on_change=_on_change)
@@ -625,6 +696,11 @@ def _render_comparison_result(result: BillingComparisonResult) -> None:
         "Finding vocabulary: "
         + "; ".join(f"{status.value} = {label}" for status, label in _FINDING_VOCAB_LABELS.items())
     )
+    st.caption(
+        "Servicing Provider here checks IDENTITY only. It never checks network "
+        "participation; that's a separate check, shown in the Summary box's Graph search bullet "
+        "below."
+    )
 
     if result.verification_guidance or result.correction_explanation or result.supporting_record_references:
         with st.expander("More detail: verification guidance & submission context"):
@@ -641,7 +717,9 @@ def _render_comparison_result(result: BillingComparisonResult) -> None:
                     st.write(f"- {ref}")
 
 
-_NETWORK_DETAIL_RE = re.compile(r"participates_in='([^']*)' plan_requires='([^']*)' in_network=(True|False)")
+_NETWORK_DETAIL_RE = re.compile(
+    r"participates_in='([^']*)' plan_id='([^']*)' plan_name='([^']*)' plan_requires='([^']*)' in_network=(True|False)"
+)
 
 
 def _build_vector_search_bullet(package: DisputeEvidencePackage) -> str:
@@ -666,31 +744,48 @@ def _build_vector_search_bullet(package: DisputeEvidencePackage) -> str:
 def _build_graph_search_bullet(package: DisputeEvidencePackage) -> str:
     """Plain-language bullet for the provider-network graph search,
     including the actual retrieve path (provider --PARTICIPATES_IN--> its
-    network node, compared against the plan's required network node) --
-    reformats package.network_relationships/source_outcomes (already
-    computed by context.dispute_evidence_retriever.gather_network_evidence
-    from dispute_review/billing_graph.py's isolated graph), never
-    re-derives or re-queries the graph itself."""
+    network node, compared against the ACTIVE plan's required network --
+    see NETWORK_CHECK_PLAN_KEY) -- reformats
+    package.network_relationships/source_outcomes (already computed by
+    context.dispute_evidence_retriever.gather_network_evidence from
+    dispute_review/billing_graph.py's isolated graph), never re-derives or
+    re-queries the graph itself."""
     outcomes = [o for o in package.source_outcomes if o.source == "provider_network"]
     if any(o.status == EvidenceSourceStatus.SUCCESS_WITH_EVIDENCE for o in outcomes):
-        parts = []
+        parsed = []
         for ref in package.network_relationships:
             provider_id = ref.label.rsplit("(", 1)[-1].rstrip(")")
             match = _NETWORK_DETAIL_RE.search(ref.detail)
+            parsed.append((provider_id, match))
+
+        plan_id = plan_name = required_network = None
+        for _, match in parsed:
+            if match is not None:
+                plan_id, plan_name = match.group(2), match.group(3)
+                required_network = match.group(4)
+                break
+        plan_phrase = f"{plan_id} ({plan_name})" if plan_id else "the plan"
+
+        parts = []
+        for provider_id, match in parsed:
             if match is None:
-                parts.append(ref.label)
+                parts.append(f"Provider network participation ({provider_id})")
                 continue
-            actual_network, required_network, in_network_str = match.groups()
+            actual_network, _plan_id, _plan_name, _required_network, in_network_str = match.groups()
             if in_network_str == "True":
-                parts.append(f"{provider_id} → `PARTICIPATES_IN` → {actual_network!r}, matching the plan's required network (in-network)")
+                parts.append(
+                    f"{provider_id} — found in-network: its `PARTICIPATES_IN` edge leads to {actual_network!r}, "
+                    f"matching what {plan_phrase} requires"
+                )
             else:
                 parts.append(
-                    f"{provider_id} → `PARTICIPATES_IN` → {actual_network!r}, not {required_network!r} as the "
-                    "plan requires (NOT in-network)"
+                    f"{provider_id} — NOT in-network: its `PARTICIPATES_IN` edge leads to {actual_network!r}, "
+                    f"not {required_network!r} as {plan_phrase} requires"
                 )
         return (
-            "- **Graph search** (follows each provider's single `PARTICIPATES_IN` edge to its network node in "
-            "the isolated provider-network graph, compared against the plan's required network): " + "; ".join(parts) + "."
+            "- **Graph search** (looks up each provider's node in the isolated provider-network graph, follows "
+            f"its single `PARTICIPATES_IN` edge to find which network it belongs to, then compares that against "
+            f"{plan_phrase}'s required network, {required_network!r}): " + "; ".join(parts) + "."
         )
     if outcomes and not any(o.status == EvidenceSourceStatus.FAILURE for o in outcomes):
         return "- **Graph search** (provider-network graph lookup): no servicing provider id available to check."
@@ -1066,6 +1161,12 @@ def render_dispute_review_tab(state: MutableMapping) -> None:
     on every rerun.
     """
     ensure_initialized(state)
+    # Force Section 1's plan selectbox to mirror the canonical value before
+    # either it or Section 2's plan selectbox is instantiated this render --
+    # the one-directional half of keeping the two synced; the other half is
+    # each widget's own on_change writing straight into the canonical
+    # NETWORK_CHECK_PLAN_KEY (see that key's own comment).
+    state[NETWORK_PLAN_SECTION1_KEY] = state.get(NETWORK_CHECK_PLAN_KEY, DEFAULT_PLAN_ID)
 
     st.caption(
         "Review a provider's proposed corrections to four billing fields on an existing claim, "
@@ -1076,7 +1177,7 @@ def render_dispute_review_tab(state: MutableMapping) -> None:
     claim_record = get_billing_claim_record()
     claim = build_billing_claim_snapshot(claim_record)
 
-    _render_original_claim_section(claim)
+    _render_original_claim_section(state, claim)
     st.divider()
     _render_correction_submission_section(state)
 

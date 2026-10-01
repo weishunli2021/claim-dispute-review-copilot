@@ -8,8 +8,10 @@ from __future__ import annotations
 import pytest
 
 from dispute_review.billing_graph import (
+    DEFAULT_PLAN_ID,
     BillingNetworkLoadError,
     get_billing_network_fixture,
+    get_billing_network_plan,
     get_billing_provider_network_neighborhood,
     is_provider_in_plan_network,
 )
@@ -19,20 +21,43 @@ from graph.retriever import NodeNotFoundError
 def test_fixture_loads_expected_providers():
     fixture = get_billing_network_fixture()
     ids = {p.provider_id for p in fixture.providers}
-    assert {"PRV-BILL-ACTUAL", "PRV-BILL-WRONG"}.issubset(ids)
-    assert fixture.plan_network_name
+    assert {"PRV-BILL-SYNTHETICCHOICEPPO500", "PRV-BILL-SUNRISEHMO200"}.issubset(ids)
+    plan_ids = {p.plan_id for p in fixture.plans}
+    assert {"PLN-BILL-01", "PLN-BILL-02"}.issubset(plan_ids)
+    assert DEFAULT_PLAN_ID in plan_ids
+
+
+def test_get_billing_network_plan_unknown_id_raises():
+    fixture = get_billing_network_fixture()
+    with pytest.raises(BillingNetworkLoadError):
+        get_billing_network_plan(fixture, "PLN-DOES-NOT-EXIST")
 
 
 def test_actual_provider_is_in_plan_network():
-    in_network, neighborhood = is_provider_in_plan_network("PRV-BILL-ACTUAL")
+    in_network, neighborhood = is_provider_in_plan_network("PRV-BILL-SYNTHETICCHOICEPPO500")
     assert in_network is True
     assert neighborhood is not None
 
 
 def test_wrong_provider_is_known_but_out_of_network():
-    in_network, neighborhood = is_provider_in_plan_network("PRV-BILL-WRONG")
+    in_network, neighborhood = is_provider_in_plan_network("PRV-BILL-SUNRISEHMO200")
     assert in_network is False  # known to the graph, just not in THIS plan's network
     assert neighborhood is not None
+
+
+def test_network_check_is_plan_sensitive():
+    """The same provider can be in-network for one plan and out-of-network
+    for another -- the check must follow whichever plan_id is passed, not
+    a single hard-coded network."""
+    actual_default, _ = is_provider_in_plan_network("PRV-BILL-SYNTHETICCHOICEPPO500")
+    actual_other, _ = is_provider_in_plan_network("PRV-BILL-SYNTHETICCHOICEPPO500", plan_id="PLN-BILL-02")
+    assert actual_default is True
+    assert actual_other is False
+
+    wrong_default, _ = is_provider_in_plan_network("PRV-BILL-SUNRISEHMO200")
+    wrong_other, _ = is_provider_in_plan_network("PRV-BILL-SUNRISEHMO200", plan_id="PLN-BILL-02")
+    assert wrong_default is False
+    assert wrong_other is True
 
 
 def test_unknown_provider_is_none_not_false():
@@ -51,10 +76,10 @@ def test_unknown_provider_raises_node_not_found_error_directly():
 def test_never_reads_the_shared_golden_dataset_graph():
     from graph.retriever import get_provider_neighborhood
 
-    # PRV-BILL-ACTUAL is fictional and specific to this isolated scenario --
+    # PRV-BILL-SYNTHETICCHOICEPPO500 is fictional and specific to this isolated scenario --
     # it must not resolve against the shared golden-dataset graph at all.
     with pytest.raises(NodeNotFoundError):
-        get_provider_neighborhood("PRV-BILL-ACTUAL")
+        get_provider_neighborhood("PRV-BILL-SYNTHETICCHOICEPPO500")
 
 
 def test_missing_fixture_raises_billing_network_load_error(tmp_path):

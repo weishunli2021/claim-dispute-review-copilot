@@ -30,7 +30,7 @@ def billing_correction_example_preset() -> BillingCorrectionSubmission:
         service_code="SURG-KNEE-REPAIR",
         modifier="MOD-L",
         units=1,
-        servicing_provider_id="PRV-BILL-ACTUAL",
+        servicing_provider_id="PRV-BILL-SYNTHETICCHOICEPPO500",
         proposed_billed_amount=1200.00,
         correction_explanation=(
             "Corrected service code, modifier, units, and servicing provider to match the operative "

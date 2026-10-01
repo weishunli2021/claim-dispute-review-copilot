@@ -32,7 +32,7 @@ def _support_records() -> list[BillingSupportRecord]:
             summary="s",
             supports_service_code="SURG-KNEE-REPAIR",
             supports_modifier="MOD-L",
-            supports_servicing_provider_id="PRV-BILL-ACTUAL",
+            supports_servicing_provider_id="PRV-BILL-SYNTHETICCHOICEPPO500",
         ),
         BillingSupportRecord(
             record_id="BILLREC-002",
@@ -45,7 +45,7 @@ def _support_records() -> list[BillingSupportRecord]:
             record_id="BILLREC-003",
             record_type="Provider roster",
             summary="s",
-            supports_servicing_provider_id="PRV-BILL-ACTUAL",
+            supports_servicing_provider_id="PRV-BILL-SYNTHETICCHOICEPPO500",
         ),
     ]
 
@@ -56,7 +56,7 @@ def test_build_billing_claim_snapshot_reads_real_fixture():
     assert claim.service_code == "SURG-KNEE-ARTHRO"
     assert claim.modifier == "MOD-R"
     assert claim.units == 2
-    assert claim.servicing_provider_id == "PRV-BILL-WRONG"
+    assert claim.servicing_provider_id == "PRV-BILL-SUNRISEHMO200"
 
 
 # --- check_claim_member_linkage -------------------------------------------------------------
@@ -91,7 +91,7 @@ def test_linkage_blocked_on_wrong_member_id():
 def test_default_example_all_four_corrections_supported():
     claim = _real_claim()
     submission = BillingCorrectionSubmission(
-        service_code="SURG-KNEE-REPAIR", modifier="MOD-L", units=1, servicing_provider_id="PRV-BILL-ACTUAL"
+        service_code="SURG-KNEE-REPAIR", modifier="MOD-L", units=1, servicing_provider_id="PRV-BILL-SYNTHETICCHOICEPPO500"
     )
     result = compare_billing_correction(claim, submission, _support_records())
     assert len(result.rows) == 4

@@ -70,6 +70,7 @@ from application.dispute_models import (
     EvidenceGateStatus,
 )
 from context.dispute_evidence_models import DisputeEvidencePackage, EvidenceSourceStatus
+from dispute_review.billing_graph import DEFAULT_PLAN_ID
 from dispute_review.models import BillingCorrectionSubmission
 from prompts.dispute_brief_prompt import build_dispute_prompt
 from skills.base import SkillStatus
@@ -182,6 +183,7 @@ def assess_evidence_gate(package: DisputeEvidencePackage) -> EvidenceGateResult:
 class DisputeWorkflowState(TypedDict):
     claim_id: str
     submission: BillingCorrectionSubmission
+    plan_id: str
     adapter: Optional[DisputeBriefAdapter]
     trace: Annotated[list[str], operator.add]
     status: str
@@ -222,7 +224,7 @@ def invoke_skill(state: DisputeWorkflowState) -> dict:
     """Calls investigate_dispute EXACTLY ONCE -- no edge in this graph
     ever routes back here."""
     try:
-        result = investigate_dispute(state["claim_id"], state["submission"])
+        result = investigate_dispute(state["claim_id"], state["submission"], plan_id=state["plan_id"])
     except Exception as exc:  # noqa: BLE001 -- external-subsystem boundary, mirrors agents/nodes.py's build_evidence
         return {
             "status": "ERROR",
@@ -504,6 +506,7 @@ def run_dispute_workflow(
     *,
     adapter: Optional[DisputeBriefAdapter] = None,
     max_steps: int = DEFAULT_MAX_STEPS,
+    plan_id: str = DEFAULT_PLAN_ID,
 ) -> DisputeWorkflowResult:
     """Run the bounded dispute-review AI workflow exactly once and return a
     product-facing DisputeWorkflowResult.
@@ -513,11 +516,18 @@ def run_dispute_workflow(
     those surface as a normal DisputeWorkflowResult with an appropriate
     status instead. Makes AT MOST ONE investigate_dispute call and AT MOST
     ONE generation call, regardless of outcome.
+
+    `plan_id` defaults to the claim's own actually-recorded plan and is
+    passed straight through to invoke_skill -> investigate_dispute ->
+    build_dispute_evidence_package -> gather_network_evidence -- see that
+    last function's docstring for exactly what it does and does not
+    change.
     """
     run_id = str(uuid4())
     initial_state: DisputeWorkflowState = {
         "claim_id": claim_id,
         "submission": submission,
+        "plan_id": plan_id,
         "adapter": adapter,
         "trace": [],
         "status": "RUNNING",

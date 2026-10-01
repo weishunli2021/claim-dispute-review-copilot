@@ -7,7 +7,7 @@ Why a second, separate graph rather than adding a node to the existing
 one: graph.builder.build_graph() derives the shared graph entirely from
 tools.data_store.get_data_store() (data/providers.json, data/plans.json,
 ...), which the Golden Dataset & Evaluation tab also depends on. Adding
-PRV-BILL-ACTUAL there would mean editing a SHARED fixture the golden
+PRV-BILL-SYNTHETICCHOICEPPO500 there would mean editing a SHARED fixture the golden
 dataset's own tests assume an exact shape for -- exactly the kind of
 cross-contamination dispute_review/billing_fixtures.py was built to avoid
 for the claim/decision/support-record data. This module applies the same
@@ -51,11 +51,33 @@ class BillingNetworkProvider(BaseModel):
     network_name: str
 
 
-class BillingNetworkFixture(BaseModel):
+class BillingNetworkPlan(BaseModel):
+    """One plan this scenario can check network participation against.
+    `plan_network_name` is the ONLY network a provider must have a
+    PARTICIPATES_IN edge to in order to count as in-network for this plan
+    -- a provider can participate in a different network and still be
+    correctly reported out-of-network for a given plan (see
+    is_provider_in_plan_network)."""
+
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     plan_id: str
+    plan_name: str
     plan_network_name: str
+
+
+# The claim's own actually-recorded plan (data/billing_correction_claim.json's
+# plan_id) -- used whenever a caller doesn't explicitly pick a different plan
+# to check network participation against (see dispute_review/ui.py's optional
+# "Network plan" control, a demo-only lever that never changes the
+# claim's own recorded plan_id/plan_name shown in Section 1).
+DEFAULT_PLAN_ID = "PLN-BILL-01"
+
+
+class BillingNetworkFixture(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    plans: list[BillingNetworkPlan]
     providers: list[BillingNetworkProvider]
 
 
@@ -77,6 +99,15 @@ def _load_fixture(path_str: str) -> BillingNetworkFixture:
 def get_billing_network_fixture(path: Path = DEFAULT_BILLING_NETWORK_PATH) -> BillingNetworkFixture:
     """Load (and cache) the isolated provider-network fixture."""
     return _load_fixture(str(path))
+
+
+def get_billing_network_plan(fixture: BillingNetworkFixture, plan_id: str) -> BillingNetworkPlan:
+    """Look up one plan by id. Raises BillingNetworkLoadError for an
+    unknown plan_id -- never silently falls back to the default plan."""
+    for plan in fixture.plans:
+        if plan.plan_id == plan_id:
+            return plan
+    raise BillingNetworkLoadError(f"Unknown plan_id {plan_id!r} in billing network fixture.")
 
 
 def _build_graph(fixture: BillingNetworkFixture) -> nx.MultiDiGraph:
@@ -117,19 +148,22 @@ def get_billing_provider_network_neighborhood(
 
 
 def is_provider_in_plan_network(
-    provider_id: str, *, path: Path = DEFAULT_BILLING_NETWORK_PATH
+    provider_id: str, *, plan_id: str = DEFAULT_PLAN_ID, path: Path = DEFAULT_BILLING_NETWORK_PATH
 ) -> tuple[bool, GraphContext] | tuple[None, None]:
-    """Return (in_network, neighborhood) for `provider_id` against this
-    scenario's plan network, or (None, None) if the provider is not known
-    to this isolated graph at all (never confused with "known and out of
-    network" -- that is `(False, neighborhood)`).
+    """Return (in_network, neighborhood) for `provider_id` against
+    `plan_id`'s required network (the claim's own actually-recorded plan
+    by default), or (None, None) if the provider is not known to this
+    isolated graph at all (never confused with "known and out of network"
+    -- that is `(False, neighborhood)`). Raises BillingNetworkLoadError
+    for an unknown plan_id.
     """
     fixture = get_billing_network_fixture(path)
+    plan = get_billing_network_plan(fixture, plan_id)
     try:
         neighborhood = get_billing_provider_network_neighborhood(provider_id, path=path)
     except NodeNotFoundError:
         return None, None
-    target = network_node_id(fixture.plan_network_name)
+    target = network_node_id(plan.plan_network_name)
     root = provider_node_id(provider_id)
     in_network = any(
         rel.source_id == root and rel.relation == PARTICIPATES_IN and rel.target_id == target

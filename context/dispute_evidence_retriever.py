@@ -50,7 +50,12 @@ from dispute_review.billing_fixtures import (
     get_billing_claim_record,
     get_billing_support_records,
 )
-from dispute_review.billing_graph import get_billing_network_fixture, is_provider_in_plan_network
+from dispute_review.billing_graph import (
+    DEFAULT_PLAN_ID,
+    get_billing_network_fixture,
+    get_billing_network_plan,
+    is_provider_in_plan_network,
+)
 from dispute_review.billing_policy import BillingPolicyLoadError, search_billing_policy
 from dispute_review.comparison import (
     build_billing_claim_snapshot,
@@ -238,12 +243,26 @@ def gather_policy_evidence(comparison_result: Optional[BillingComparisonResult] 
 # --- 4. isolated provider-network graph -----------------------------------------------------
 
 
-def gather_network_evidence(original_provider_id: Optional[str], proposed_provider_id: Optional[str]) -> _GatherResult:
+def gather_network_evidence(
+    original_provider_id: Optional[str],
+    proposed_provider_id: Optional[str],
+    *,
+    plan_id: str = DEFAULT_PLAN_ID,
+) -> _GatherResult:
     """Check network participation for the original claim's servicing
-    provider and, if different, the proposed one, against this scenario's
-    own ISOLATED provider-network graph (dispute_review.billing_graph) --
-    never the shared golden-dataset graph. Establishes network
-    participation only, never coverage, applicability, or payment.
+    provider and, if different, the proposed one, against `plan_id`'s
+    required network in this scenario's own ISOLATED provider-network
+    graph (dispute_review.billing_graph) -- never the shared golden-dataset
+    graph. Establishes network participation only, never coverage,
+    applicability, or payment.
+
+    `plan_id` defaults to the claim's own actually-recorded plan
+    (dispute_review.billing_graph.DEFAULT_PLAN_ID); a caller may pass a
+    different known plan_id (dispute_review/ui.py's optional "Network
+    check plan" control) to check the same providers against a different
+    plan's required network -- this never changes the claim's own recorded
+    plan_id/plan_name shown in Section 1, only which network this ONE
+    check compares against.
     """
     provider_ids = [pid for pid in {original_provider_id, proposed_provider_id} if pid]
     if not provider_ids:
@@ -256,13 +275,14 @@ def gather_network_evidence(original_provider_id: Optional[str], proposed_provid
         )
 
     fixture = get_billing_network_fixture()
+    plan = get_billing_network_plan(fixture, plan_id)
     name_by_id = {p.provider_id: p.name for p in fixture.providers}
     network_by_id = {p.provider_id: p.network_name for p in fixture.providers}
     references: list[EvidenceReference] = []
     not_found: list[str] = []
 
     for provider_id in sorted(provider_ids):
-        in_network, _neighborhood = is_provider_in_plan_network(provider_id)
+        in_network, _neighborhood = is_provider_in_plan_network(provider_id, plan_id=plan_id)
         if in_network is None:
             not_found.append(provider_id)
             continue
@@ -275,7 +295,8 @@ def gather_network_evidence(original_provider_id: Optional[str], proposed_provid
                 detail=(
                     f"provider_id={provider_id} name={name_by_id.get(provider_id, 'unknown')} "
                     f"participates_in={network_by_id.get(provider_id, 'unknown')!r} "
-                    f"plan_requires={fixture.plan_network_name!r} in_network={in_network}"
+                    f"plan_id={plan.plan_id!r} plan_name={plan.plan_name!r} "
+                    f"plan_requires={plan.plan_network_name!r} in_network={in_network}"
                 ),
             )
         )
@@ -361,7 +382,9 @@ def _identify_missing_evidence(comparison_result: BillingComparisonResult) -> li
 # --- assembly --------------------------------------------------------------------------
 
 
-def build_dispute_evidence_package(claim_id: str, submission: BillingCorrectionSubmission) -> DisputeEvidencePackage:
+def build_dispute_evidence_package(
+    claim_id: str, submission: BillingCorrectionSubmission, *, plan_id: str = DEFAULT_PLAN_ID
+) -> DisputeEvidencePackage:
     """Assemble the full dispute evidence package for one billing-correction
     submission against the one fixed original claim.
 
@@ -369,6 +392,9 @@ def build_dispute_evidence_package(claim_id: str, submission: BillingCorrectionS
     -- the caller (skills.investigate_dispute) maps this to
     SkillStatus.NOT_FOUND, exactly like the retired scenario's own
     unknown-claim path.
+
+    `plan_id` is passed straight through to gather_network_evidence --
+    see its own docstring for what it does and does not change.
     """
     if claim_id != BILLING_CLAIM_ID:
         raise ValueError(f"No matching claim was found for claim_id {claim_id!r}.")
@@ -420,7 +446,9 @@ def build_dispute_evidence_package(claim_id: str, submission: BillingCorrectionS
     comparison_result = compare_billing_correction(claim_snapshot, submission, support_records)
     comparison_findings = _build_comparison_findings(comparison_result)
     policy_result = gather_policy_evidence(comparison_result)
-    network_result = gather_network_evidence(claim_snapshot.servicing_provider_id, submission.servicing_provider_id)
+    network_result = gather_network_evidence(
+        claim_snapshot.servicing_provider_id, submission.servicing_provider_id, plan_id=plan_id
+    )
 
     conflicts = [
         f"{row.field}: {row.explanation}" for row in comparison_result.rows if row.status == BillingFindingStatus.CONFLICTS

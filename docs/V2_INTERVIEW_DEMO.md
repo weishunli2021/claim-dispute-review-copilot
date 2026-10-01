@@ -33,7 +33,7 @@ Review** as the first tab and **Golden Dataset & Evaluation** as the second — 
 - **UI action:** Dispute Review tab → read Section 1 (Original Claim & Recorded Decision) as
   rendered, with no clicks yet.
 - **Expected visible result:** the four investigated fields are prominently shown
-  (`SURG-KNEE-ARTHRO`, `MOD-R`, 2 units, `PRV-BILL-WRONG`), and the recorded decision states it
+  (`SURG-KNEE-ARTHRO`, `MOD-R`, 2 units, `PRV-BILL-SUNRISEHMO200`), and the recorded decision states it
   only flagged `service_code` and `modifier` — units and servicing provider are not mentioned.
 - **Say:** "The claims system only caught two of the four billing errors on this claim when it
   denied it — it never separately checked units or the servicing provider. That distinction

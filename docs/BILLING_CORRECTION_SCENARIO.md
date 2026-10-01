@@ -49,7 +49,7 @@ Isolated from `data/claims.json` and the Golden Dataset's `CLM-1001`–`CLM-1005
 | Member | `MEM-BILL-01` — Jordan Reyes |
 | Plan | `PLN-BILL-01` — Synthetic Choice PPO 500 |
 | Billing provider | `PRV-BILL-CLINIC` — Riverside Ortho Clinic |
-| Servicing provider (as originally submitted) | `PRV-BILL-WRONG` — Dr. A. Kowalski |
+| Servicing provider (as originally submitted) | `PRV-BILL-SUNRISEHMO200` — Dr. A. Kowalski |
 | Service date | 2026-06-01 |
 | **Service code (original, wrong)** | `SURG-KNEE-ARTHRO` — "Diagnostic knee arthroscopy" (fictional) |
 | **Modifier (original, wrong)** | `MOD-R` — "Right side" (fictional) |
@@ -86,9 +86,9 @@ never anything the provider typed.
 
 | Record ID | Type | Establishes |
 |---|---|---|
-| `BILLREC-001` | Operative note (2026-06-01, Dr. S. Whitfield) | Service performed = open ligament repair (`SURG-KNEE-REPAIR`), **left** knee (`MOD-L`), performed by `PRV-BILL-ACTUAL` |
+| `BILLREC-001` | Operative note (2026-06-01, Dr. S. Whitfield) | Service performed = open ligament repair (`SURG-KNEE-REPAIR`), **left** knee (`MOD-L`), performed by `PRV-BILL-SYNTHETICCHOICEPPO500` |
 | `BILLREC-002` | Anesthesia/units log (2026-06-01) | Exactly **one** operative session (units = 1), left knee (`MOD-L`) |
-| `BILLREC-003` | Provider roster confirmation (2026-06-05) | `PRV-BILL-ACTUAL` (Dr. S. Whitfield) is the credentialed surgeon of record; `PRV-BILL-WRONG` is a different clinician not involved in this surgery |
+| `BILLREC-003` | Provider roster confirmation (2026-06-05) | `PRV-BILL-SYNTHETICCHOICEPPO500` (Dr. S. Whitfield) is the credentialed surgeon of record; `PRV-BILL-SUNRISEHMO200` is a different clinician not involved in this surgery |
 
 ---
 
@@ -112,8 +112,8 @@ available for a "browse the whole policy" use.
 
 **Provider network participation — an isolated knowledge graph.**
 `dispute_review/billing_graph.py` builds a small, separate `networkx.MultiDiGraph` from its own
-fixture (`data/billing_correction_network.json`: `PRV-BILL-ACTUAL` → "Synthetic Choice Network";
-`PRV-BILL-WRONG` → "Sunrise Alliance Network", the plan's network being "Synthetic Choice
+fixture (`data/billing_correction_network.json`: `PRV-BILL-SYNTHETICCHOICEPPO500` → "Synthetic Choice Network";
+`PRV-BILL-SUNRISEHMO200` → "Sunrise Alliance Network", the plan's network being "Synthetic Choice
 Network") — reusing `graph.builder`'s node/relation constants and `graph.retriever`'s bounded
 neighborhood traversal for consistency, but **never** the shared golden-dataset graph (which is
 built entirely from `data/providers.json`, a fixture the Golden Dataset & Evaluation tab also
@@ -143,7 +143,7 @@ four corrections the independent records above actually support:
 | Service Code | `SURG-KNEE-ARTHRO` | `SURG-KNEE-REPAIR` | `SURG-KNEE-REPAIR` | **SUPPORTED** | `support:BILLREC-001` |
 | Modifier | `MOD-R` | `MOD-L` | `MOD-L` | **SUPPORTED** | `support:BILLREC-001`, `support:BILLREC-002` |
 | Units | 2 | 1 | 1 | **SUPPORTED** | `support:BILLREC-002` |
-| Servicing Provider | `PRV-BILL-WRONG` | `PRV-BILL-ACTUAL` | `PRV-BILL-ACTUAL` | **SUPPORTED** | `support:BILLREC-001`, `support:BILLREC-003` |
+| Servicing Provider | `PRV-BILL-SUNRISEHMO200` | `PRV-BILL-SYNTHETICCHOICEPPO500` | `PRV-BILL-SYNTHETICCHOICEPPO500` | **SUPPORTED** | `support:BILLREC-001`, `support:BILLREC-003` |
 
 Derived proposed billed amount: 1 unit × $1,200.00/unit = **$1,200.00** — labeled as a derived
 recomputation only, never an allowed amount or a payment determination.

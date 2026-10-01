@@ -184,7 +184,7 @@ def test_section_headers_appear_in_required_order(monkeypatch):
 def test_original_claim_shows_prominent_four_investigated_fields(monkeypatch):
     at = _fresh_app(monkeypatch)
     text = _all_text(at)
-    for value in ("SURG-KNEE-ARTHRO", "MOD-R", "PRV-BILL-WRONG"):
+    for value in ("SURG-KNEE-ARTHRO", "MOD-R", "PRV-BILL-SUNRISEHMO200"):
         assert value in text
 
 
@@ -204,7 +204,7 @@ def test_load_example_populates_fields(monkeypatch):
     assert _text_input(at, "Service code").value == "SURG-KNEE-REPAIR"
     assert _text_input(at, "Modifier").value == "MOD-L"
     assert _text_input(at, "Units").value == "1"
-    assert _text_input(at, "Servicing provider ID").value == "PRV-BILL-ACTUAL"
+    assert _text_input(at, "Servicing provider ID").value == "PRV-BILL-SYNTHETICCHOICEPPO500"
 
 
 def test_reset_clears_fields_and_result(monkeypatch):
@@ -348,12 +348,76 @@ def test_combined_summary_includes_automated_policy_and_network_checks(monkeypat
     assert "- **Graph search**" in combined
     # Bullets come before Suggested Next Step, which is last.
     assert combined.index("- **Graph search**") < combined.index("Suggested Next Step:")
-    # Default example: original PRV-BILL-WRONG is NOT in-network, the
-    # corrected PRV-BILL-ACTUAL is in-network -- both are reported, never
+    # Default example: original PRV-BILL-SUNRISEHMO200 is NOT in-network, the
+    # corrected PRV-BILL-SYNTHETICCHOICEPPO500 is in-network -- both are reported, never
     # just the one that happens to match, and the actual network each
-    # participates in is named (the retrieve path), not just a verdict.
-    assert "PRV-BILL-ACTUAL → `PARTICIPATES_IN` → 'Synthetic Choice Network', matching the plan's required network (in-network)" in combined
-    assert "PRV-BILL-WRONG → `PARTICIPATES_IN` → 'Sunrise Alliance Network', not 'Synthetic Choice Network' as the plan requires (NOT in-network)" in combined
+    # participates in is named (the retrieve path), not just a verdict --
+    # including explicit "found in-network" language for the matching one.
+    assert (
+        "PRV-BILL-SYNTHETICCHOICEPPO500 — found in-network: its `PARTICIPATES_IN` edge leads to 'Synthetic Choice Network', "
+        "matching what PLN-BILL-01 (Synthetic Choice PPO 500) requires" in combined
+    )
+    assert (
+        "PRV-BILL-SUNRISEHMO200 — NOT in-network: its `PARTICIPATES_IN` edge leads to 'Sunrise Alliance Network', "
+        "not 'Synthetic Choice Network' as PLN-BILL-01 (Synthetic Choice PPO 500) requires" in combined
+    )
+
+
+def test_network_check_plan_selector_flips_which_provider_is_in_network(monkeypatch):
+    """New feature (user request, 2026-10-01): a demo-only "Network check
+    plan" selector lets the reviewer compare the same providers against a
+    DIFFERENT plan's required network, without ever changing the claim's
+    own recorded plan shown in Section 1. Switching to PLN-BILL-02 flips
+    the verdict for both providers: PRV-BILL-SYNTHETICCHOICEPPO500 (normally in-network)
+    becomes NOT in-network, and PRV-BILL-SUNRISEHMO200 becomes in-network."""
+    at = _fresh_app(monkeypatch, dispute_brief=FAKE_DISPUTE_BRIEF)
+    at = _click(at, "Load billing correction example")
+
+    plan_select = next(s for s in _dispute_tab(at).selectbox if s.label == "Network plan")
+    assert plan_select.value == "PLN-BILL-01"  # defaults to the claim's own recorded plan
+    at = plan_select.set_value("PLN-BILL-02").run()
+
+    at = _click(at, "Investigate billing correction")
+    tab = _dispute_tab(at)
+    combined = next(s.value for s in tab.success)
+    assert (
+        "PRV-BILL-SYNTHETICCHOICEPPO500 — NOT in-network: its `PARTICIPATES_IN` edge leads to 'Synthetic Choice Network', "
+        "not 'Sunrise Alliance Network' as PLN-BILL-02 (Sunrise Alliance HMO 200) requires" in combined
+    )
+    assert (
+        "PRV-BILL-SUNRISEHMO200 — found in-network: its `PARTICIPATES_IN` edge leads to 'Sunrise Alliance Network', "
+        "matching what PLN-BILL-02 (Sunrise Alliance HMO 200) requires" in combined
+    )
+    # The claim's own recorded plan (Section 1) never changes.
+    assert "PLN-BILL-01" in _all_text(at) and "Synthetic Choice PPO 500" in _all_text(at)
+
+
+def test_section1_and_section2_plan_selectors_stay_synced(monkeypatch):
+    """New feature (user request, 2026-10-01): Section 1's "Plan" selectbox
+    (next to the claim identification table) and Section 2's "Network
+    plan" selectbox are two widgets over the SAME canonical value
+    (NETWORK_CHECK_PLAN_KEY) -- changing either one updates the other on
+    the next render, and Section 1's own separate "Claim's own recorded
+    plan (fixed)" caption never changes regardless of either selection."""
+    at = _fresh_app(monkeypatch)
+    tab = _dispute_tab(at)
+    section1_select = next(s for s in tab.selectbox if s.label == "Plan")
+    section2_select = next(s for s in tab.selectbox if s.label == "Network plan")
+    assert section1_select.value == "PLN-BILL-01"
+    assert section2_select.value == "PLN-BILL-01"
+
+    # Change Section 1's selector -> Section 2 follows.
+    at = section1_select.set_value("PLN-BILL-02").run()
+    tab = _dispute_tab(at)
+    assert next(s for s in tab.selectbox if s.label == "Network plan").value == "PLN-BILL-02"
+    assert "Claim's own recorded plan (fixed): **PLN-BILL-01 — Synthetic Choice PPO 500**" in _all_text(at)
+
+    # Change Section 2's selector back -> Section 1 follows.
+    section2_select = next(s for s in tab.selectbox if s.label == "Network plan")
+    at = section2_select.set_value("PLN-BILL-01").run()
+    tab = _dispute_tab(at)
+    assert next(s for s in tab.selectbox if s.label == "Plan").value == "PLN-BILL-01"
+    assert "Claim's own recorded plan (fixed): **PLN-BILL-01 — Synthetic Choice PPO 500**" in _all_text(at)
 
 
 def test_findings_and_next_step_evidence_are_collapsed_by_default(monkeypatch):

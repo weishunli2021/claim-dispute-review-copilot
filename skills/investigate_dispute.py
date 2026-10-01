@@ -31,6 +31,7 @@ import sys
 from typing import Optional
 
 from context.dispute_evidence_retriever import build_dispute_evidence_package
+from dispute_review.billing_graph import DEFAULT_PLAN_ID
 from dispute_review.models import BillingCorrectionSubmission
 from skills._debug import print_skill_result
 from skills.base import RiskLevel, SkillInput, SkillMetadata, SkillResult, SkillStatus
@@ -53,9 +54,12 @@ METADATA = SkillMetadata(
 class InvestigateDisputeInput(SkillInput):
     claim_id: str
     submission: BillingCorrectionSubmission
+    plan_id: str = DEFAULT_PLAN_ID
 
 
-def investigate_dispute(claim_id: str, submission: BillingCorrectionSubmission) -> SkillResult:
+def investigate_dispute(
+    claim_id: str, submission: BillingCorrectionSubmission, *, plan_id: str = DEFAULT_PLAN_ID
+) -> SkillResult:
     """Run the dispute-investigation capability for one claim + submission.
 
     `submission` must already be a validated DisputeSubmission (the
@@ -64,7 +68,9 @@ def investigate_dispute(claim_id: str, submission: BillingCorrectionSubmission) 
     context.dispute_evidence_retriever.build_dispute_evidence_package for
     evidence assembly, including the comparison itself; this function adds
     no retrieval or comparison logic of its own, only the SkillResult
-    framing.
+    framing. `plan_id` is passed straight through -- see
+    build_dispute_evidence_package's own docstring for what it does and
+    does not change.
 
     Wrapped in a broad exception handler on purpose: this is the one node
     that reaches into external subsystems (the embedding model, the vector
@@ -74,7 +80,7 @@ def investigate_dispute(claim_id: str, submission: BillingCorrectionSubmission) 
     skills/investigate_claim.py and agents/nodes.py's build_evidence use.
     """
     try:
-        package = build_dispute_evidence_package(claim_id, submission)
+        package = build_dispute_evidence_package(claim_id, submission, plan_id=plan_id)
     except ValueError as exc:
         return SkillResult(
             skill_name=METADATA.name,
