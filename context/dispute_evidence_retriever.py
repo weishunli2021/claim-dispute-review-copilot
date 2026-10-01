@@ -257,6 +257,7 @@ def gather_network_evidence(original_provider_id: Optional[str], proposed_provid
 
     fixture = get_billing_network_fixture()
     name_by_id = {p.provider_id: p.name for p in fixture.providers}
+    network_by_id = {p.provider_id: p.network_name for p in fixture.providers}
     references: list[EvidenceReference] = []
     not_found: list[str] = []
 
@@ -273,7 +274,8 @@ def gather_network_evidence(original_provider_id: Optional[str], proposed_provid
                 label=f"Provider network participation ({provider_id})",
                 detail=(
                     f"provider_id={provider_id} name={name_by_id.get(provider_id, 'unknown')} "
-                    f"in_network_for_plan_network={fixture.plan_network_name!r}={in_network}"
+                    f"participates_in={network_by_id.get(provider_id, 'unknown')!r} "
+                    f"plan_requires={fixture.plan_network_name!r} in_network={in_network}"
                 ),
             )
         )

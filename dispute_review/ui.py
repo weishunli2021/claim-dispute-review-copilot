@@ -42,6 +42,7 @@ inside their own button's click handler.
 
 from __future__ import annotations
 
+import re
 from typing import MutableMapping, Optional
 
 import streamlit as st
@@ -59,7 +60,7 @@ from application.dispute_models import (
 )
 from application.dispute_workflow import run_dispute_workflow
 from application.judge_models import JudgeVerdict
-from context.dispute_evidence_models import EvidenceReference, EvidenceSourceStatus
+from context.dispute_evidence_models import DisputeEvidencePackage, EvidenceReference, EvidenceSourceStatus
 from dispute_review.billing_fixtures import (
     BILLING_CLAIM_ID,
     get_billing_claim_record,
@@ -640,23 +641,109 @@ def _render_comparison_result(result: BillingComparisonResult) -> None:
                     st.write(f"- {ref}")
 
 
-def _render_combined_summary(comparison_result: BillingComparisonResult, brief: Optional[DisputeBrief]) -> None:
+_NETWORK_DETAIL_RE = re.compile(r"participates_in='([^']*)' plan_requires='([^']*)' in_network=(True|False)")
+
+
+def _build_vector_search_bullet(package: DisputeEvidencePackage) -> str:
+    """Plain-language bullet for the policy vector search -- reformats
+    package.policy_passages/source_outcomes (already computed by
+    context.dispute_evidence_retriever.gather_policy_evidence), never
+    re-derives the search itself."""
+    outcomes = [o for o in package.source_outcomes if o.source == "billing_policy"]
+    if any(o.status == EvidenceSourceStatus.SUCCESS_WITH_EVIDENCE for o in outcomes):
+        sections = ", ".join(ref.label.removeprefix("Policy ") for ref in package.policy_passages)
+        return (
+            "- **Vector search** (semantic similarity ranking over the billing-review policy): "
+            f"found relevant guidance — {sections}."
+        )
+    if any(o.status == EvidenceSourceStatus.SUCCESS_NO_RESULTS for o in outcomes):
+        return "- **Vector search** (semantic similarity ranking over the billing-review policy): no sufficiently relevant section found."
+    if outcomes:
+        return f"- **Vector search**: did not complete — {outcomes[0].detail or 'see technical detail below'}."
+    return "- **Vector search**: not run."
+
+
+def _build_graph_search_bullet(package: DisputeEvidencePackage) -> str:
+    """Plain-language bullet for the provider-network graph search,
+    including the actual retrieve path (provider --PARTICIPATES_IN--> its
+    network node, compared against the plan's required network node) --
+    reformats package.network_relationships/source_outcomes (already
+    computed by context.dispute_evidence_retriever.gather_network_evidence
+    from dispute_review/billing_graph.py's isolated graph), never
+    re-derives or re-queries the graph itself."""
+    outcomes = [o for o in package.source_outcomes if o.source == "provider_network"]
+    if any(o.status == EvidenceSourceStatus.SUCCESS_WITH_EVIDENCE for o in outcomes):
+        parts = []
+        for ref in package.network_relationships:
+            provider_id = ref.label.rsplit("(", 1)[-1].rstrip(")")
+            match = _NETWORK_DETAIL_RE.search(ref.detail)
+            if match is None:
+                parts.append(ref.label)
+                continue
+            actual_network, required_network, in_network_str = match.groups()
+            if in_network_str == "True":
+                parts.append(f"{provider_id} → `PARTICIPATES_IN` → {actual_network!r}, matching the plan's required network (in-network)")
+            else:
+                parts.append(
+                    f"{provider_id} → `PARTICIPATES_IN` → {actual_network!r}, not {required_network!r} as the "
+                    "plan requires (NOT in-network)"
+                )
+        return (
+            "- **Graph search** (follows each provider's single `PARTICIPATES_IN` edge to its network node in "
+            "the isolated provider-network graph, compared against the plan's required network): " + "; ".join(parts) + "."
+        )
+    if outcomes and not any(o.status == EvidenceSourceStatus.FAILURE for o in outcomes):
+        return "- **Graph search** (provider-network graph lookup): no servicing provider id available to check."
+    if outcomes:
+        detail = next((o.detail for o in outcomes if o.detail), "see technical detail below")
+        return f"- **Graph search**: did not complete — {detail}."
+    return "- **Graph search**: not run."
+
+
+def _build_evidence_bullets(
+    comparison_result: BillingComparisonResult, evidence_package: Optional[DisputeEvidencePackage]
+) -> list[str]:
+    """The three automated-check bullets, in the fixed order: structured
+    comparison, vector search, graph search. Absence is stated as absence
+    (no relevant section / no provider id to check), never silently
+    treated as a pass -- see _build_vector_search_bullet and
+    _build_graph_search_bullet."""
+    bullets = [
+        "- **Structured comparison** (deterministic, four fields vs. independent records): "
+        + comparison_result.summary
+    ]
+    if evidence_package is not None:
+        bullets.append(_build_vector_search_bullet(evidence_package))
+        bullets.append(_build_graph_search_bullet(evidence_package))
+    return bullets
+
+
+def _render_combined_summary(
+    comparison_result: BillingComparisonResult,
+    brief: Optional[DisputeBrief],
+    evidence_package: Optional[DisputeEvidencePackage] = None,
+) -> None:
     """ONE green 'Summary' box for the whole combined comparison+
-    investigation output: the deterministic comparison summary alone when
-    no accepted brief exists yet, or that same comparison summary plus the
-    AI-drafted brief's own summary AND its suggested next step together
-    when it does -- never separate 'Summary'/'Suggested Next Step' boxes.
-    Everything else (workflow status, findings, evidence) renders as
-    expandable content below this box, never inside it."""
+    investigation output. Order (user request, 2026-09-30): the AI-drafted
+    brief's own narrative summary first (when present), then the three
+    automated-check bullets -- structured comparison, vector search,
+    graph search -- then the Suggested Next Step LAST. Never separate
+    'Summary'/'Suggested Next Step' boxes. Everything else (workflow
+    status, findings, evidence) still renders as expandable content below
+    this box, never inside it."""
     st.markdown("**Summary**")
+    parts: list[str] = []
+    if brief is not None:
+        parts.append(brief.summary)
+    parts.append("\n".join(_build_evidence_bullets(comparison_result, evidence_package)))
     if brief is not None:
         step = brief.suggested_next_step
-        st.success(
-            f"{comparison_result.summary}\n\n{brief.summary}\n\n"
-            f"**Suggested Next Step: {step.action_code.value}** — {step.rationale}"
-        )
+        parts.append(f"**Suggested Next Step: {step.action_code.value}** — {step.rationale}")
+    text = "\n\n".join(parts)
+    if brief is not None:
+        st.success(text)
     else:
-        st.info(comparison_result.summary)
+        st.info(text)
 
 
 # --- Section 3b / 4: AI investigation + judge rendering -----------------------------------
@@ -1027,7 +1114,8 @@ def render_dispute_review_tab(state: MutableMapping) -> None:
         accepted_brief = None
         if workflow_result is not None and is_accepted_dispute_draft(workflow_result) and workflow_result.brief is not None:
             accepted_brief = workflow_result.brief
-        _render_combined_summary(result, accepted_brief)
+        evidence_package = workflow_result.evidence_package if workflow_result is not None else None
+        _render_combined_summary(result, accepted_brief, evidence_package)
 
         if workflow_result is not None:
             _render_investigation_result(state, workflow_result)

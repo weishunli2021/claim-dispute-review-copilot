@@ -326,6 +326,36 @@ def test_suggested_next_step_combined_into_the_same_green_summary_box(monkeypatc
     assert "Suggested Next Step: HUMAN_REVIEW" in combined
 
 
+def test_combined_summary_includes_automated_policy_and_network_checks(monkeypatch):
+    """UI improvement (user request, 2026-09-30): the green combined
+    Summary box surfaces three automated-check bullets -- structured
+    comparison, vector search, graph search -- in that order, with
+    Suggested Next Step last. Reuses the already-computed
+    DisputeEvidencePackage, never re-derives either check, so a reviewer
+    sees this without opening the technical "Evidence source outcomes..."
+    expander. The graph search bullet also names the actual retrieve path
+    (provider -> PARTICIPATES_IN -> its network node, vs. the plan's
+    required network)."""
+    at = _fresh_app(monkeypatch, dispute_brief=FAKE_DISPUTE_BRIEF)
+    at = _click(at, "Load billing correction example")
+    at = _click(at, "Investigate billing correction")
+    tab = _dispute_tab(at)
+    success_texts = [s.value for s in tab.success]
+    assert len(success_texts) == 1
+    combined = success_texts[0]
+    assert "- **Structured comparison**" in combined
+    assert "- **Vector search**" in combined
+    assert "- **Graph search**" in combined
+    # Bullets come before Suggested Next Step, which is last.
+    assert combined.index("- **Graph search**") < combined.index("Suggested Next Step:")
+    # Default example: original PRV-BILL-WRONG is NOT in-network, the
+    # corrected PRV-BILL-ACTUAL is in-network -- both are reported, never
+    # just the one that happens to match, and the actual network each
+    # participates in is named (the retrieve path), not just a verdict.
+    assert "PRV-BILL-ACTUAL → `PARTICIPATES_IN` → 'Synthetic Choice Network', matching the plan's required network (in-network)" in combined
+    assert "PRV-BILL-WRONG → `PARTICIPATES_IN` → 'Sunrise Alliance Network', not 'Synthetic Choice Network' as the plan requires (NOT in-network)" in combined
+
+
 def test_findings_and_next_step_evidence_are_collapsed_by_default(monkeypatch):
     at = _fresh_app(monkeypatch, dispute_brief=FAKE_DISPUTE_BRIEF)
     at = _click(at, "Load billing correction example")
