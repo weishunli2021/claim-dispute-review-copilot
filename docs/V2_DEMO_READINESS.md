@@ -197,7 +197,7 @@ Using this project's own v2 `.venv` explicitly, on a port unlikely to collide wi
 running locally:
 
 ```powershell
-D:\AI\claude-code\claim-dispute-review-copilot-v2\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502 --server.headless=true
+C:\weishunli\AI\claude-code\claim-dispute-review-copilot-v2\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502 --server.headless=true
 ```
 
 Then open `http://localhost:8502` in a browser. Omit `--server.headless=true` if you want

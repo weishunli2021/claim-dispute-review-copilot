@@ -5,6 +5,13 @@
 **Source:** `D:\AI\claude-code\claim-dispute-review-copilot`
 **Destination:** `D:\AI\claude-code\claim-dispute-review-copilot-v2`
 
+> **Relocated (2026-10-28):** both projects have since moved off the `D:` drive, which no
+> longer exists on this machine. This project now lives at
+> `C:\weishunli\AI\claude-code\claim-dispute-review-copilot-v2`, and the v1 source at
+> `C:\weishunli\AI\claude-code\claim-dispute-review-copilot`. The `D:` paths in this document
+> (and in the other dated historical records under `docs/`) are kept as-is because they record
+> where each copy, test run, or command actually happened at that time.
+
 This document records the exact state of the source project at the moment it was
 copied into this isolated `v2` development directory, and exactly what Module 1 did
 and did not change. The displayed application name remains **"Claim Dispute Review

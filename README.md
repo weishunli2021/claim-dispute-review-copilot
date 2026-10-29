@@ -185,7 +185,7 @@ correctly points at this v2 project's own `.venv`, and uses a non-default port t
 with another local Streamlit instance:
 
 ```powershell
-D:\AI\claude-code\claim-dispute-review-copilot-v2\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502 --server.headless=true
+C:\weishunli\AI\claude-code\claim-dispute-review-copilot-v2\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502 --server.headless=true
 ```
 
 **Dispute Review's deterministic comparison needs no `OPENAI_API_KEY`.** "Compare submitted
