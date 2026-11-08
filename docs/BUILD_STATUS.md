@@ -1,4 +1,4 @@
-# Humana Claims Investigation Copilot — Build Status
+# Claims Investigation Copilot — Build Status
 
 Tracks H0–H5 of the finishing plan. Each module records actual findings only —
 future modules are NOT_STARTED with no invented results. See
@@ -818,7 +818,7 @@ work) — none fixed in H5, per its own scope.
 **Repository status:** no git commits exist yet (repo initialized in H0, never committed). All
 H0–H5 work remains untracked/uncommitted. `.env` confirmed git-ignored and never displayed or
 logged at any point in H0–H5. Recommended (not executed): a single local commit covering the full
-H0–H5 work, followed by a local tag such as `humana-takehome-demo-v1` — no push, per instruction.
+H0–H5 work, followed by a local tag such as `takehome-demo-v1` — no push, per instruction.
 
 ---
 
@@ -938,7 +938,7 @@ automatically this stage.
 ## H7 — Scenario Lab / synthetic test-case builder
 
 **Status: OFFLINE-COMPLETE.** H0–H6 remain frozen and unchanged (verified against git tag
-`humana-takehome-h6-v1`: zero diff in `agents/`, `skills/`, `context/`, `rag/`, `graph/`,
+`takehome-h6-v1`: zero diff in `agents/`, `skills/`, `context/`, `rag/`, `graph/`,
 `tools/`, `application/investigation_service.py`, `application/brief_validator.py`,
 `application/semantic_judge.py`, `data/`, or any golden set — the tag equals HEAD commit
 `49697da`, and the only tracked-file diff against it is `app.py`, restructured into two tabs).
@@ -978,7 +978,7 @@ full-stack `AppTest`-driven UI regression tests), `docs/SCENARIO_LAB.md`.
 `application/investigation_service.py`, `application/brief_validator.py`,
 `application/semantic_judge.py`, `application/models.py`, `application/llm_adapter.py`, any
 golden set, any synthetic source data file — confirmed by `git diff --stat
-humana-takehome-h6-v1` showing zero changes in any of those paths.
+takehome-h6-v1` showing zero changes in any of those paths.
 
 ### Audit: no duplicated business logic in app.py
 
@@ -1077,7 +1077,7 @@ automatically this stage.
 ## H8 — Semantic judge 1-5 rubric scores
 
 **Status: OFFLINE-COMPLETE.** H0–H7 remain frozen and unchanged (verified against git tag
-`humana-takehome-h7-v1`: zero diff in `agents/`, `skills/`, `context/`, `rag/`, `graph/`,
+`takehome-h7-v1`: zero diff in `agents/`, `skills/`, `context/`, `rag/`, `graph/`,
 `tools/`, `data/`, any golden set, `application/investigation_service.py`,
 `application/brief_validator.py`, or `application/scenario_lab.py`). No live judge call has been
 made — awaiting explicit approval, per instruction. Full architecture/rubric/limitations in
@@ -1088,7 +1088,7 @@ integer 1-5 rubric score alongside its existing PASS/FAIL/UNCERTAIN verdict, plu
 deterministically-computed overall score — an evaluation-signal enhancement only, never a
 replacement for the categorical verdict system.
 
-**Files changed (exactly 5, confirmed by `git diff --stat humana-takehome-h7-v1`):**
+**Files changed (exactly 5, confirmed by `git diff --stat takehome-h7-v1`):**
 - `application/judge_models.py` — added `DimensionResult` (score 1-5 + verdict + rationale, with
   a `model_validator` rejecting incoherent score/verdict pairs) and `RawJudgeDimensions` (the
   ONLY schema ever handed to the LLM as `text_format` — no `overall_result`/`overall_score`
@@ -1121,7 +1121,7 @@ replacement for the categorical verdict system.
 **Not changed:** `agents/`, `skills/`, `context/`, `rag/`, `graph/`, `tools/`, `data/`, any
 golden set, `application/investigation_service.py`, `application/brief_validator.py`,
 `application/models.py`, `application/llm_adapter.py`, `application/scenario_lab.py`,
-`application/workbench.py` — confirmed by `git diff --stat humana-takehome-h7-v1` showing zero
+`application/workbench.py` — confirmed by `git diff --stat takehome-h7-v1` showing zero
 changes in any of those paths.
 
 ### 1-5 rubric scoring

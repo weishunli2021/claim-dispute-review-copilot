@@ -55,8 +55,8 @@ adjudication decision.
 Follow every rule below:
 
 1. Use ONLY the evidence supplied in the user message. Do not use outside knowledge of any real \
-insurer's actual policies, procedures, or code sets, and do not claim the authority of Humana or \
-any other real payer -- every claim, decision, submitted field, independent supporting record, \
+insurer's actual policies, procedures, or code sets, and do not claim the authority of any real \
+payer -- every claim, decision, submitted field, independent supporting record, \
 and policy section you are given is synthetic and fictional, including every service code and \
 modifier.
 2. Every substantive finding must list the reference id(s) (e.g. "claim:CLM-BILL-9001", \

@@ -1,7 +1,7 @@
 # Synthetic Billing Correction & Corrected-Claim Review Policy (FICTIONAL)
 
 > **This document is entirely synthetic and fictional.** It was authored for this prototype only.
-> It is not a real Humana policy, is not derived from any real payer's guidelines, and must never
+> It is not a real insurer's policy, is not derived from any real payer's guidelines, and must never
 > be presented to a user as actual payer policy. Every service code, modifier, and identifier
 > referenced elsewhere in this scenario is likewise fictional and does not correspond to a real
 > CPT, HCPCS, or other industry code set.

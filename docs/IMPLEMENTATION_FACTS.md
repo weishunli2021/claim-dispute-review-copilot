@@ -1,7 +1,7 @@
 # Implementation Fact Sheet — Claims Investigation Copilot
 
 For interview accuracy. Every number here comes from an actual run recorded in
-[docs/HUMANA_BUILD_STATUS.md](HUMANA_BUILD_STATUS.md); nothing is estimated or invented. See
+[docs/BUILD_STATUS.md](BUILD_STATUS.md); nothing is estimated or invented. See
 [docs/KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) for what to disclose proactively if asked.
 
 ---
@@ -47,7 +47,7 @@ For interview accuracy. Every number here comes from an actual run recorded in
 
 ## B. What is NOT implemented
 
-- No connection to any Humana production system, of any kind.
+- No connection to any real payer's production system, of any kind.
 - No real member, claim, or provider data anywhere — five synthetic scenarios only.
 - No autonomous claim adjudication (approve/deny) anywhere in the system.
 - No payment or claim-reversal action, anywhere.
@@ -104,4 +104,4 @@ For interview accuracy. Every number here comes from an actual run recorded in
 | H3 live UI smoke test | **Performed, successful** — one live call through the actual Streamlit app for CLM-1001, including a successful "Accept Investigation Draft" click |
 
 No metric above has been rounded favorably, estimated, or invented. If a number can't be found in
-`docs/HUMANA_BUILD_STATUS.md`, it should not be quoted as verified.
+`docs/BUILD_STATUS.md`, it should not be quoted as verified.

@@ -85,7 +85,7 @@ st.title("Claim Dispute Review Copilot")
 st.caption("Evidence-first investigation support for claims operations")
 st.caption(
     "Synthetic-data prototype for interview/portfolio purposes only. No real PHI, member "
-    "data, or proprietary Humana data is used anywhere in this app."
+    "data, or proprietary payer data is used anywhere in this app."
 )
 
 # Cosmetic only: makes the two interview tabs visually prominent (larger,

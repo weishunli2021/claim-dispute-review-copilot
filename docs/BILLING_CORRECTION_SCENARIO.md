@@ -31,7 +31,7 @@ to submit the corrected claim, edit the original claim, reverse the denial, or a
 remains an analyst's job downstream of this tool.
 
 Every identifier, code, modifier, and provider name in this scenario is **entirely fictional** —
-none of it corresponds to a real CPT/HCPCS code, a real provider, or actual Humana policy.
+none of it corresponds to a real CPT/HCPCS code, a real provider, or actual payer policy.
 
 ---
 
@@ -182,7 +182,7 @@ is never flagged as an error.
   — never silently carried out against a different, ambiguous identity
   (`dispute_review.comparison.check_claim_member_linkage`).
 - The synthetic policy (`documents/billing_correction_policy.md`, sections `BILL-1`–`BILL-5`) is
-  fictional and is never presented as real Humana or industry guidance.
+  fictional and is never presented as real payer or industry guidance.
 - Nothing in this scenario submits a corrected claim, edits the original claim, reverses the
   recorded denial, or approves/determines payment — enforced by fixed UI disclaimers, the
   generation prompt's explicit rules, and the deterministic brief validator's authority-language

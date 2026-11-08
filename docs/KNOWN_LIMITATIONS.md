@@ -39,7 +39,7 @@ only, not commitments, and were **not** implemented here.
    business-logic decision requiring its own product sign-off, not something to add silently.*
 
 6. **Synthetic-data-only prototype.** All five cases, all policy documents, and the fictional
-   payer ("Meridian") are fabricated. No real PHI, member data, or proprietary Humana content
+   payer ("Meridian") are fabricated. No real PHI, member data, or proprietary payer content
    exists anywhere in this repository.
    *Production next step: not applicable to this prototype's purpose; a real deployment would
    need a full data-governance and PHI-handling review before any real data is introduced.*

@@ -59,7 +59,7 @@ add `overall_score`), `application/semantic_judge.py` (`OpenAISemanticJudgeAdapt
 investigation_judge_prompt.py` (score anchors added, `JUDGE_PROMPT_VERSION` bumped to
 `investigation_judge.v2`), `app.py` (judge-section rendering extended for scores), and
 `tests/test_semantic_judge.py`. No other file changed for H8 — confirmed by `git diff --stat
-humana-takehome-h7-v1`.
+takehome-h7-v1`.
 
 ## Judge rubric
 
@@ -245,7 +245,7 @@ reusing `result.run_id` instead of generating a new one (a one-line change, alre
 intent in `SemanticJudgeEnvelope`'s own docstring). Confirmed **not** caused by requiring
 "Accept Investigation Draft" first — the judge section was already gated only on
 `GenerationStatus.DRAFTED` + `ValidationStatus.PASSED`. See
-`docs/HUMANA_BUILD_STATUS.md`'s H6 entry for the full diagnostic writeup.
+`docs/BUILD_STATUS.md`'s H6 entry for the full diagnostic writeup.
 
 ## How to invoke from Streamlit
 

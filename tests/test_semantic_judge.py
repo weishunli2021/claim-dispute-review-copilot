@@ -176,7 +176,7 @@ def test_a_good_brief_judge_structure_accepted():
     # (not a freshly-generated, unrelated uuid) -- app.py's staleness guard
     # (`envelope.run_id != result.run_id`) compares against exactly this,
     # and a mismatch here silently suppresses ALL rendering (success and
-    # failure alike). See docs/HUMANA_BUILD_STATUS.md's H6 bugfix entry.
+    # failure alike). See docs/BUILD_STATUS.md's H6 bugfix entry.
     assert envelope.run_id == result.run_id
     assert envelope.claim_id == CLAIM_ID
 
@@ -622,7 +622,7 @@ def test_h8_l_scenario_lab_result_supports_the_same_rubric_scored_judge():
 # zero live calls occur. This is the layer where the run_id bug actually
 # manifested (a unit test on run_semantic_judge alone could not have caught
 # app.py's *rendering* guard silently discarding a correctly-computed
-# envelope) -- see docs/HUMANA_BUILD_STATUS.md's H6 bugfix entry. H8 extends
+# envelope) -- see docs/BUILD_STATUS.md's H6 bugfix entry. H8 extends
 # this to also assert the new score/overall-score UI elements render.
 
 

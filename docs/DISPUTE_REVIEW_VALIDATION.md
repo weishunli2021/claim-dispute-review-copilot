@@ -12,7 +12,7 @@ not replace or restate [DISPUTE_REVIEW_LOGIC.md](DISPUTE_REVIEW_LOGIC.md)
 (business logic) or [DISPUTE_REVIEW_UI.md](DISPUTE_REVIEW_UI.md) (UI flow) —
 see those for design detail. Historical evaluation documents
 ([EVALUATION_REPORT.md](EVALUATION_REPORT.md),
-[HUMANA_BUILD_STATUS.md](HUMANA_BUILD_STATUS.md), etc.) describe the
+[BUILD_STATUS.md](BUILD_STATUS.md), etc.) describe the
 original H0–H8 build and are left untouched; this document covers only the
 new extension.
 
@@ -25,7 +25,7 @@ new extension.
 - `tests/test_app_scenario_lab_ui.py`'s one updated assertion
 - `docs/DISPUTE_REVIEW_BASELINE.md`, `DISPUTE_REVIEW_LOGIC.md`, `DISPUTE_REVIEW_UI.md`
 - A full-project diff against the original, read-only
-  `D:\AI\claude-code\humana-takehome-claims-copilot`
+  `claims-investigation-copilot` (original project folder)
 
 ## Implementation-against-scope review (Step 1)
 
@@ -56,7 +56,7 @@ change.
 ## Preservation and isolation evidence (Step 2)
 
 **File-level diff against the original, read-only project**
-(`humana-takehome-claims-copilot`), all source layers:
+(the original claims-investigation project), all source layers:
 
 | Path | Result |
 | --- | --- |

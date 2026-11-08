@@ -115,7 +115,7 @@ def assemble_context(agent_result: AgentResult) -> AssembledContext:
     # keyed by its own authorization_id -- this is what keeps both of Case
     # 2's records (PA-1501, PA-2001) distinct. No date/claim matching is
     # performed here or anywhere upstream; see the "matching" vs
-    # "preserving candidates" distinction in docs/HUMANA_BUILD_STATUS.md.
+    # "preserving candidates" distinction in docs/BUILD_STATUS.md.
     for auth in sf.prior_authorizations:
         references.append(
             ContextReference(

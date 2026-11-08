@@ -163,7 +163,7 @@ User
 - **Evaluation** (`evals/`) *(IMPLEMENTED, H0-H4)* — component golden-set evals per layer,
   8 end-to-end product-scenario checks (E01-E08), and 9 safety/failure-mode checks (S01-S09) —
   see [success_metrics.md](success_metrics.md) for the target metrics and
-  [HUMANA_BUILD_STATUS.md](HUMANA_BUILD_STATUS.md) for actual results, including the honestly-
+  [BUILD_STATUS.md](BUILD_STATUS.md) for actual results, including the honestly-
   reported 63.33% Policy Section Recall finding.
 
 ## Current implementation status

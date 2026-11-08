@@ -206,7 +206,7 @@ def run_semantic_judge(
     # guard (`envelope.run_id != result.run_id`) actually compares against.
     # A fresh uuid4() here would never equal result.run_id, silently
     # failing that guard on every single invocation -- see
-    # docs/HUMANA_BUILD_STATUS.md's H6 bugfix entry for the diagnosis.
+    # docs/BUILD_STATUS.md's H6 bugfix entry for the diagnosis.
     run_id = result.run_id
     prompt_bundle = build_judge_prompt(result.query, result.assembled_context, result.investigation_brief)
     resolved_adapter: JudgeAdapter = adapter if adapter is not None else OpenAISemanticJudgeAdapter()

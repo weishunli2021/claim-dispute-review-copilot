@@ -100,7 +100,7 @@ def test_no_unapproved_llm_provider_or_external_graph_dependencies():
     # constraint for "no LLM integration yet" (H0). H1 is authorized to add
     # exactly one provider SDK (openai, for application/llm_adapter.py's
     # Responses-API structured-output adapter -- see
-    # docs/HUMANA_BUILD_STATUS.md's H1 entry) -- so the blanket
+    # docs/BUILD_STATUS.md's H1 entry) -- so the blanket
     # requirements.txt check is now too broad and is replaced by the
     # module-boundary check below (test_openai_sdk_confined_to_generation_adapter),
     # which is the actual architectural rule: the approved provider SDK is

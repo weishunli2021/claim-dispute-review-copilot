@@ -234,7 +234,7 @@ def run_s07() -> ScenarioResult:
 
     What this test does NOT establish: that a real model would actually
     resist this or a differently-phrased injection. No live call is made
-    here -- see docs/HUMANA_BUILD_STATUS.md's H4 entry.
+    here -- see docs/BUILD_STATUS.md's H4 entry.
     """
     from application.context_assembler import ContextReference
     from prompts.investigation_brief_prompt import SYSTEM_PROMPT, build_prompt

@@ -14,7 +14,7 @@ Dispute Review has not yet been added to).
 ## Source and project paths
 
 - **Original project (read-only source, not modified by Module 2):**
-  `D:\AI\claude-code\humana-takehome-claims-copilot`
+  `claims-investigation-copilot` (original project folder)
 - **New project (this repository):**
   `D:\AI\claude-code\claim-dispute-review-copilot`
 - Module 1 copied source/fixtures byte-identical, removed the original's generated

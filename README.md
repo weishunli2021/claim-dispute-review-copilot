@@ -7,7 +7,7 @@ citation-required investigation brief, running it through a deterministic valida
 routing anything it can't support to local human review.
 
 > **This is an interview/portfolio prototype, not production software.** It is not affiliated
-> with, endorsed by, or built from any non-public Humana systems or data, and it does not
+> with, endorsed by, or built from any non-public payer systems or data, and it does not
 > connect to any real payer system. All member, claim, benefit, provider, and policy data in
 > this repository are entirely synthetic and fictional — see "Synthetic-data-only policy" below.
 
@@ -62,7 +62,7 @@ instance of it yet.
 Access to the original hosted app is **private/access-controlled** (the underlying GitHub
 repository is private, and the hosted app is restricted to authorized viewers only) — it is not
 a public link. This is a synthetic-data interview/portfolio prototype, not connected to any real
-Humana system or data. **Predefined Claims** is the primary demo path; **Scenario Lab** is an
+payer system or data. **Predefined Claims** is the primary demo path; **Scenario Lab** is an
 experimental, single-user testing surface (see "Known limitations" below) — it is not designed
 for concurrent multi-user use on this shared hosted instance.
 
@@ -479,8 +479,8 @@ system corrects for it.
   is enforced structurally (a closed advisory-action allowlist, authority-language validation,
   and a local-only human-review record), never claimed as a guarantee about the correctness of
   the underlying business decision itself.
-- **No real Humana integration, of any kind.** This prototype has never connected to, read
-  from, or been built from any non-public Humana system or data.
+- **No real payer integration, of any kind.** This prototype has never connected to, read
+  from, or been built from any non-public payer system or data.
 - **Dispute Review is single-claim and exact-match only.** It is focused on the one isolated,
   fictional `CLM-BILL-9001` (no multi-claim selector), compares field values with exact string
   equality after trimming (no fuzzy matching, case folding, or alias resolution), has no
@@ -560,7 +560,7 @@ app.py         Streamlit UI: default navigation is Dispute Review + Golden Datas
 ## Synthetic-data-only policy
 
 This project must **never** contain real PHI, real member/patient data, real claims data, or
-any proprietary Humana data or systems information. All member, claim, benefit, and provider
+any proprietary payer data or systems information. All member, claim, benefit, and provider
 data used anywhere in this project — now or in any later stage — must be fabricated/synthetic
 and clearly recognizable as such (obviously fake names, member IDs, provider IDs, and a
 fictional payer name). This applies to code, fixtures, documentation, and any example output.

@@ -8,5 +8,5 @@ only when evidence was already judged sufficient -- calls one configured
 LLM adapter (application.llm_adapter) to draft a structured
 InvestigationBrief (application.models). Nothing here re-runs evidence
 retrieval, duplicates the sufficiency rule, or touches agents/skills/
-context/rag/graph's contracts. See docs/HUMANA_BUILD_STATUS.md's H1 entry.
+context/rag/graph's contracts. See docs/BUILD_STATUS.md's H1 entry.
 """

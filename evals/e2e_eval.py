@@ -283,7 +283,7 @@ def run_e05() -> ScenarioResult:
 def run_e06() -> ScenarioResult:
     """Isolated Case-2 evidence variation: PA-2001 removed via a temporary,
     reversible DataStore-boundary override -- NOT a tool-function patch
-    (post-audit remediation; see docs/HUMANA_BUILD_STATUS.md's remediation
+    (post-audit remediation; see docs/BUILD_STATUS.md's remediation
     entry for the finding this replaces).
 
     An earlier version of this scenario patched

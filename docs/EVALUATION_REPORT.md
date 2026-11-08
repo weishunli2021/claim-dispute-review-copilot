@@ -59,7 +59,7 @@ Every scenario uses a mocked adapter (reproducible, no network call) but goes th
 > `DataStore`-boundary override instead (removing `PA-2001` from both the flat dict and its
 > grouped index, with a graph-cache clear/rebuild), and now explicitly asserts its absence from
 > structured facts, graph relationships, assembled context references, *and* the rendered
-> generation prompt. See `docs/HUMANA_BUILD_STATUS.md`'s remediation entry and
+> generation prompt. See `docs/BUILD_STATUS.md`'s remediation entry and
 > `evals/e2e_eval.py::run_e06` for the current implementation. E06 still passes; all 8 scenarios
 > in this section remain 8/8.
 

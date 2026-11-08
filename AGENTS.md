@@ -2,13 +2,13 @@
 
 This file is the authoritative, durable instruction set for anyone (human or AI agent) working
 on this repository. `CLAUDE.md` imports it. Keep it concise; put status/history in
-[docs/HUMANA_BUILD_STATUS.md](docs/HUMANA_BUILD_STATUS.md), not here.
+[docs/BUILD_STATUS.md](docs/BUILD_STATUS.md), not here.
 
 ## What this project is
 
 A synthetic-data, advisory-only prototype: **Claims Investigation Copilot**. It helps a payer
 claims-operations specialist investigate an existing claim inquiry. It is not connected to
-Humana production systems, and it is not authorized to approve, deny, reverse, pay, or modify
+any real payer's production systems, and it is not authorized to approve, deny, reverse, pay, or modify
 claims or authorizations, or to make medical-necessity decisions. "Accept investigation draft"
 must never mean "Approve claim." Human escalation is a local, simulated review workflow, not a
 real external ticket, communication, or production-system update.
@@ -33,7 +33,7 @@ current implementation status, and [README.md](README.md) for what each implemen
    `graph/`, and `context/`. Do not re-derive or shadow these elsewhere (e.g. in `agents/` or a
    new generation layer).
 5. **Synthetic data only.** No real PHI, real member/patient data, real claims data, or
-   proprietary Humana data or systems information, anywhere — code, fixtures, docs, or example
+   proprietary payer data or systems information, anywhere — code, fixtures, docs, or example
    output. See `tests/test_synthetic_data_hygiene.py` and `tests/test_policy_document_hygiene.py`.
 6. **No consequential claim/authorization/payment actions.** Nothing in this codebase approves,
    denies, reverses, pays, or modifies a claim or authorization, or changes benefits.
@@ -64,7 +64,7 @@ current implementation status, and [README.md](README.md) for what each implemen
 ## Practical notes
 
 - Python: this environment uses Python 3.14.5 via a project-local `.venv` (`py -3.14 -m venv
-  .venv`). See [docs/HUMANA_BUILD_STATUS.md](docs/HUMANA_BUILD_STATUS.md) for the exact install/
+  .venv`). See [docs/BUILD_STATUS.md](docs/BUILD_STATUS.md) for the exact install/
   test/eval commands actually run and their results.
 - Layering discipline: `Tool` (one deterministic op, `tools/`) → `Skill` (a business capability,
   `skills/`) → `Agent` (orchestrates skills, `agents/`). `context/` (GraphRAG/hybrid retrieval)
@@ -78,5 +78,5 @@ current implementation status, and [README.md](README.md) for what each implemen
   per rule 4 above — see [docs/GUARDRAILS.md](docs/GUARDRAILS.md) for the single-pane-of-glass
   catalog of what's implemented and exactly which file owns each rule. `observability/` and
   `governance/` remain genuine placeholders (no logic, no artifacts) — see
-  [docs/HUMANA_BUILD_STATUS.md](docs/HUMANA_BUILD_STATUS.md) for the current classification of
+  [docs/BUILD_STATUS.md](docs/BUILD_STATUS.md) for the current classification of
   each before building into them.
